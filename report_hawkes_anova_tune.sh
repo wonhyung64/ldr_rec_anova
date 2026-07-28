@@ -69,7 +69,8 @@ GAMMA_GRID=(0.1 0.5 1.0 3.0 10.0)
 experiments=()
 for score_norm in "${SCORE_NORM_GRID[@]}"; do
     for gamma in "${GAMMA_GRID[@]}"; do
-        experiments+=("./baseline/debiased_seq_rec_hawkes_anova.py --model-name=sasrec --dataset=micro_video --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=none --tau=0.1 --alpha1=0.5 --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=500 --epochs=500")
+        # experiments+=("./baseline/debiased_seq_rec_hawkes_anova.py --model-name=sasrec --dataset=micro_video --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=none --tau=0.1 --alpha1=0.5 --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=500 --epochs=500")
+        experiments+=("./baseline/debiased_seq_rec_hawkes_anova.py --model-name=sasrec --dataset=micro_video --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=shared --tau=0.1 --alpha1=0.5 --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=500 --epochs=500")
     done
 done
 
