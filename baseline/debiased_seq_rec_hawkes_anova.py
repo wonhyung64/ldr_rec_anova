@@ -40,7 +40,7 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec_fixed", config=vars(args))
+    wandb_var = wandb.init(project="anova_hawkes", config=vars(args))
     wandb.run.name = args.expt_name
 
 #%%
