@@ -13,6 +13,48 @@ bin-release/
 *.ipa
 *.apk
 
+__pycache__
+.DS_Store
+
+wandb
+weights
+logs
+fig
+etc
+
+multi_run.sh
+run_src.sh
+ablation.sh
+srun.sh
+scancel.sh
+report_causality_auc.sh
+
+*.pt
+*.pth
+*.npy
+*.pdf
+*.ascii
+*.csv
+# *.txt
+
+fig2_1.py
+fig2_2.py
+fig3.py
+split.py
+
+data_test*
+data_vali*
+data/
+wandb_key.txt
+
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
+
+*.png
+*.xlsx
+assets/
+collapse_analysis/
+
+collapse_analysis/embeddings/
+collapse_analysis/figures/
