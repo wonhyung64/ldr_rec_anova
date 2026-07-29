@@ -210,15 +210,20 @@ class UserItemTime(Dataset):
         return np.array(hist_item_list, dtype=np.int64), np.array(hist_time_list)
 
 
-    def get_histories_for_users_at_times(self, users, query_times, max_seq_len):
-        hist_items_batch = []
+    def get_histories_for_users_at_times(self, users, query_times, max_seq_len, w_time=False):
+        hist_items_batch, hist_times_batch = [], []
         for u, t in zip(users, query_times):
             hist = [(tt, vv) for (tt, vv) in self.user_interactions[int(u)] if tt < float(t)]
             hist = hist[-max_seq_len:]
             h_items = [vv for (tt, vv) in hist]
+            h_times = [tt for (tt, vv) in hist]
             pad_len = max_seq_len - len(h_items)
             h_items = [self.m_item] * pad_len + h_items
+            h_times = [0.] * pad_len + h_times
             hist_items_batch.append(h_items)
+            hist_times_batch.append(h_times)
+        if w_time:
+            return np.array(hist_items_batch, dtype=np.int64), np.array(hist_times_batch)
         return np.array(hist_items_batch, dtype=np.int64)
 
 

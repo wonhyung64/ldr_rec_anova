@@ -52,7 +52,7 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 
 # Grid search over the hyperparameters that belong to our proposed framework
 # (Hawkes prior + importance-corrected choice loss + ANOVA-centering), not the
-# SASRec backbone. Two axes:
+# backbone. Two axes, repeated for every (dataset, backbone) combination:
 #   --score-norm : normalized (cosine/tau) vs unnormalized (raw dot product)
 #                  utility scoring for f_Psi.
 #   --lambda-cen : the ANOVA-centering weight gamma. It is not constrained to
@@ -60,17 +60,61 @@ DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 #                  a wider, log-ish spaced range up to 10.
 # The standalone Hawkes point-process NLL term has been dropped from the loss
 # (not included mathematically cleanly), so there is no lambda-hawkes to tune.
-# tau is fixed at 0.1 (matches the "normalized" scoring's prior SASRec config);
-# it is simply unused when --score-norm=unnormalized. Backbone hyperparameters
-# (recdim, dropout, lr, ...) are held at their SASRec defaults.
+# tau is fixed at 0.1 (matches the "normalized" scoring's already-validated
+# SASRec/micro_video run); it is simply unused when --score-norm=unnormalized.
+#
+# Backbone hyperparameters (recdim, dropout, lr, contrast-size, ...) are held
+# at their argparse defaults, matching report_0726.sh's validated settings for
+# every (dataset, backbone) pair (none of them override those defaults there).
+# The two exceptions report_0726.sh does override are alpha1 (eval blending
+# weight) and, for BSARec, --alpha/--c (its frequency-mixing hyperparameters),
+# so those are looked up per (dataset, backbone) below.
+#
+# MF has no sequence dependence and uses the CF-family script; TiSASRec needs
+# history timestamps (not a user id) threaded through encode_user and so gets
+# its own script; the rest (GRU, SASRec, FEARec, BSARec) share the generic
+# sequential script via --model-name.
+declare -A SCRIPT_FOR=(
+    [mf]="./baseline/debiased_cf_hawkes_anova.py"
+    [grurec]="./baseline/debiased_seq_rec_hawkes_anova.py"
+    [sasrec]="./baseline/debiased_seq_rec_hawkes_anova.py"
+    [tisasrec]="./baseline/debiased_seq_rec_tisasrec_hawkes_anova.py"
+    [fearec]="./baseline/debiased_seq_rec_hawkes_anova.py"
+    [bsarec]="./baseline/debiased_seq_rec_hawkes_anova.py"
+)
+
+declare -A ALPHA1_FOR=(
+    [micro_video,mf]=0.3      [micro_video,grurec]=0.3   [micro_video,sasrec]=0.3
+    [micro_video,tisasrec]=0.3 [micro_video,fearec]=0.3  [micro_video,bsarec]=0.3
+    [ml-1m,mf]=0.7             [ml-1m,grurec]=0.5        [ml-1m,sasrec]=0.5
+    [ml-1m,tisasrec]=0.5       [ml-1m,fearec]=0.5        [ml-1m,bsarec]=0.7
+    [kuairand,mf]=0.5          [kuairand,grurec]=0.7     [kuairand,sasrec]=0.5
+    [kuairand,tisasrec]=0.5    [kuairand,fearec]=0.5     [kuairand,bsarec]=0.5
+)
+
+declare -A BSAREC_ALPHA_FOR=( [micro_video]=0.7 [ml-1m]=0.7 [kuairand]=0.9 )
+
+DATASETS=(micro_video ml-1m kuairand)
+BACKBONES=(mf grurec sasrec tisasrec fearec bsarec)
 SCORE_NORM_GRID=(normalized unnormalized)
 GAMMA_GRID=(0.1 0.5 1.0 3.0 10.0)
 
 experiments=()
-for score_norm in "${SCORE_NORM_GRID[@]}"; do
-    for gamma in "${GAMMA_GRID[@]}"; do
-        # experiments+=("./baseline/debiased_seq_rec_hawkes_anova.py --model-name=sasrec --dataset=micro_video --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=none --tau=0.1 --alpha1=0.5 --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=500 --epochs=500")
-        experiments+=("./baseline/debiased_seq_rec_hawkes_anova.py --model-name=sasrec --dataset=micro_video --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=shared --tau=0.1 --alpha1=0.5 --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=500 --epochs=500")
+for dataset in "${DATASETS[@]}"; do
+    for model in "${BACKBONES[@]}"; do
+        script="${SCRIPT_FOR[$model]}"
+        alpha1="${ALPHA1_FOR[${dataset},${model}]}"
+
+        extra_args=""
+        if [ "$model" == "bsarec" ]; then
+            extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=1"
+        fi
+
+        for score_norm in "${SCORE_NORM_GRID[@]}"; do
+            for gamma in "${GAMMA_GRID[@]}"; do
+                experiments+=("${script} --model-name=${model} --dataset=${dataset} --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=shared --tau=0.1 --alpha1=${alpha1} ${extra_args} --score-norm=${score_norm} --lambda-cen=${gamma} --evaluate-interval=250 --epochs=500")
+            done
+        done
     done
 done
 
