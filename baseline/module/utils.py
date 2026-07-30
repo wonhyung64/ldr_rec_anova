@@ -52,6 +52,10 @@ def parse_args():
     parser.add_argument('--lambda-cen', type=float, default=0.5, help='ANOVA-centering penalty weight (gamma)')
     parser.add_argument('--score-norm', type=str, default="normalized", choices=["normalized", "unnormalized"],
                          help='normalized: cosine similarity / tau; unnormalized: raw dot product')
+    parser.add_argument('--short-half-life', type=float, default=1.0,
+                         help='two-timescale Hawkes: short-component half-life, in the timestamp units used by the dataset (days)')
+    parser.add_argument('--long-half-life', type=float, default=7.0,
+                         help='two-timescale Hawkes: long-component half-life, in the timestamp units used by the dataset (days)')
 
 
 
