@@ -9,6 +9,18 @@ class UserItemTime(Dataset):
         self.time_unit = time_unit
 
         self.time_dict = np.load(f'{path}/interaction_time_dict.npy', allow_pickle=True).item()
+        if dataset == "kuairand":
+            # KuaiRand's raw interaction timestamps are stored in milliseconds
+            # since epoch (e.g. 1649476421916 -> 2022-04-09), unlike the other
+            # datasets' seconds-since-epoch -- rescale once, here, at the
+            # single load point, so every downstream consumer (set_to_pair,
+            # build_user_interactions, time_dict_to_array, and the training
+            # scripts' item_time_array /= 86400.0) can keep assuming "raw =
+            # seconds" without kuairand-specific branching elsewhere.
+            self.time_dict = {
+                u: {it: t / 1000.0 for it, t in items.items()}
+                for u, items in self.time_dict.items()
+            }
         self.train_dict = np.load(f'{path}/training_dict.npy', allow_pickle=True).item()
         self.valid_dict = np.load(f'{path}/validation_dict.npy', allow_pickle=True).item()
         self.test_dict = np.load(f'{path}/testing_dict.npy', allow_pickle=True).item()

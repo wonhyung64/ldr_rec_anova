@@ -56,6 +56,8 @@ def parse_args():
                          help='two-timescale Hawkes: short-component half-life, in the timestamp units used by the dataset (days)')
     parser.add_argument('--long-half-life', type=float, default=7.0,
                          help='two-timescale Hawkes: long-component half-life, in the timestamp units used by the dataset (days)')
+    parser.add_argument('--half-life-grid', type=str, default='0.1,0.5,2,10,50,200',
+                         help='multiscale Hawkes: comma-separated list of K fixed excitation half-lives (days), e.g. "0.02,0.05,0.15,0.4,1.0,3.0"')
 
 
 
