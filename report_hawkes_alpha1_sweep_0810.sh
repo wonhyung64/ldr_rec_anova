@@ -77,7 +77,7 @@ SCORE_NORM=unnormalized
 DECAY=0.0001
 LAMBDA_CEN=0.1
 GRID="0.01,0.03,0.1,0.3,1,3"
-WEIGHTS_PATH=./weights_hawkes_fixablation_decay_only
+WEIGHTS_PATH=./weights_hawkes_lambdacen_sweep
 
 ALPHA1_VALUES=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
