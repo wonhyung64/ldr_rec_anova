@@ -75,7 +75,7 @@ SCRIPT=./baseline/debiased_seq_rec_hawkes_multiscale.py
 TAU=0.1
 SCORE_NORM=unnormalized
 DECAY=0.0001
-LAMBDA_CEN=0.1
+LAMBDA_CEN=0.5
 GRID="0.01,0.03,0.1,0.3,1,3"
 WEIGHTS_PATH=./weights_hawkes_lambdacen_sweep
 
