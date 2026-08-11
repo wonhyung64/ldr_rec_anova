@@ -50,51 +50,52 @@ EOF
 ENV=/home1/wonhyung64/anaconda3/envs/openmmlab/bin/python3
 DATADIR=/home1/wonhyung64/Github/ldr_rec/data
 
-# Eval-only follow-up to report_hawkes_anova_control.sh: alpha1 (the
-# prediction-time blend pred = item_log_prob*alpha1 + resid*(1-alpha1), see
-# debiased_seq_rec_hawkes_anova.py's eval loop) never affects training, and
-# the checkpoint filename pattern doesn't include it either -- so this reuses
-# the SAME --weights_path/model_name/tau/score_norm/lambda_cen/ablation/seed/
-# epochs as report_hawkes_anova_control.sh, which makes that script's
-# checkpoint-glob-and-resume logic load the already-finished e500 file and
-# skip straight to eval with the new alpha1. No retraining.
+# Eval-only follow-up to report_hawkes_anova_control.sh's 20-combo grid
+# result. By VALIDATION recall@10 (our selection criterion), the winner
+# among all 20 was clear and not close:
 #
-# Scope kept narrow on purpose (2 ablations x 6 alpha1 = 12 fast eval jobs,
-# not the full 20-combo grid): fixed at score_norm=unnormalized,
-# lambda_cen=0.5, the combo every earlier multiscale sweep's comments cite as
-# "best so far" (test recall@10=0.1455 at alpha1=0.3, under --ablation=shared,
-# which was itself never verified against --ablation=none -- see
-# report_hawkes_anova_control.sh's header). This answers two open questions
-# from that control run's results at once:
-#   1. does --ablation=none (full method) beat --ablation=shared here too,
-#      at the SAME alpha1=0.3 previously used everywhere?
-#   2. within each ablation setting, is alpha1=0.3 actually optimal, or (per
-#      the multiscale alpha1 sweep's monotonically-decreasing-in-alpha1
-#      trend, 0.1458 at alpha1=0.1 down to 0.1081 at alpha1=0.9) does ranking
-#      by the learned utility alone (alpha1=0.0, ignoring the Hawkes prior at
-#      eval time -- the decision rule the paper's identifiability result
-#      (Prop. 1) actually calls for) do even better?
+#   ablation=shared, score_norm=normalized, lambda_cen=3, tau=0.1, alpha1=0.3
+#     -> valid_recall@10=0.1807, test_recall@10=0.1635, test_ndcg@10=0.0810
 #
-# Once the winning (ablation, alpha1) pair is known, widen back to the other
-# score_norm/lambda_cen combos from report_hawkes_anova_control.sh if it's
-# worth the extra retrains.
+# next best was the same (shared, normalized) family at lambda_cen=1
+# (valid 0.1739) and lambda_cen=0.5/10 (valid ~0.1706), while every
+# --ablation=none run topped out at valid 0.1669 (unnormalized, lambda_cen=
+# 0.1) -- i.e. the --ablation=none hypothesis from report_hawkes_anova_
+# control.sh's header comment did NOT pan out empirically here; --ablation=
+# shared (the setting silently used everywhere pre-control) actually wins.
+# So this script narrows to that single winning corner instead of the
+# original 2-ablation x 6-alpha1 design.
+#
+# alpha1 (prediction-time blend, pred = item_log_prob*alpha1 + resid*
+# (1-alpha1)) never affects training and isn't in the checkpoint filename,
+# so this reuses the exact --weights_path/model_name/tau/score_norm/
+# lambda_cen/ablation/seed/epochs of that winning run, which makes
+# debiased_seq_rec_hawkes_anova.py's checkpoint-glob-and-resume logic load
+# the already-finished e500 file and skip straight to eval. No retraining.
+#
+# alpha1=0.3 was never itself tuned for this (score_norm, lambda_cen)
+# corner -- it was carried over from report_0726.sh's original config. Full
+# 0.0-0.9 grid (matching report_hawkes_alpha1_sweep.sh's thoroughness) to
+# check whether validation recall can be pushed past 0.1807 by reweighting
+# the eval-time item-prior/utility blend, including alpha1=0.0 (rank by the
+# learned utility alone, ignoring the Hawkes prior at eval time -- the
+# decision rule the paper's identifiability result, Prop. 1, actually calls
+# for).
 
 DATASET=micro_video
 MODEL=sasrec
 SCRIPT=./baseline/debiased_seq_rec_hawkes_anova.py
 TAU=0.1
-SCORE_NORM=unnormalized
-LAMBDA_CEN=0.5
+SCORE_NORM=normalized
+LAMBDA_CEN=3
+ABLATION=shared
 WEIGHTS_PATH=./weights_hawkes_anova_control
 
-ABLATIONS=(none shared)
-ALPHA1_VALUES=(0.0 0.1 0.2 0.3 0.4 0.5)
+ALPHA1_VALUES=(0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
 experiments=()
-for ablation in "${ABLATIONS[@]}"; do
-    for alpha1 in "${ALPHA1_VALUES[@]}"; do
-        experiments+=("${SCRIPT} --model-name=${MODEL} --dataset=${DATASET} --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=${ablation} --tau=${TAU} --alpha1=${alpha1} --score-norm=${SCORE_NORM} --lambda-cen=${LAMBDA_CEN} --weights_path=${WEIGHTS_PATH} --evaluate-interval=250 --epochs=500")
-    done
+for alpha1 in "${ALPHA1_VALUES[@]}"; do
+    experiments+=("${SCRIPT} --model-name=${MODEL} --dataset=${DATASET} --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=${ABLATION} --tau=${TAU} --alpha1=${alpha1} --score-norm=${SCORE_NORM} --lambda-cen=${LAMBDA_CEN} --weights_path=${WEIGHTS_PATH} --evaluate-interval=250 --epochs=500")
 done
 
 
