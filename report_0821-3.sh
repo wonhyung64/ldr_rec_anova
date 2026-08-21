@@ -99,41 +99,37 @@ declare -A SCRIPT_FOR=(
     [bsarec]="./baseline/debiased_seq_rec_hawkes_anova.py"
 )
 
-declare -A GAMMA_FOR=(
-    [micro_video,mf]=1.0      [micro_video,grurec]=1.0   [micro_video,sasrec]=3.0
-    [micro_video,tisasrec]=0.5 [micro_video,fearec]=0.1  [micro_video,bsarec]=0.1
-    [ml-1m,mf]=3.0             [ml-1m,grurec]=10.0        [ml-1m,sasrec]=0.5
-    [ml-1m,tisasrec]=1.0       [ml-1m,fearec]=0.1        [ml-1m,bsarec]=0.1
-    # [kuairand,mf]=0.1          [kuairand,grurec]=10.0     [kuairand,sasrec]=0.5
-    # [kuairand,tisasrec]=    [kuairand,fearec]=     [kuairand,bsarec]=
+declare -A ALPHA1_FOR=(
+    [micro_video,mf]=0.3      [micro_video,grurec]=0.3   [micro_video,sasrec]=0.3
+    [micro_video,tisasrec]=0.3 [micro_video,fearec]=0.3  [micro_video,bsarec]=0.3
+    [ml-1m,mf]=0.7             [ml-1m,grurec]=0.5        [ml-1m,sasrec]=0.5
+    [ml-1m,tisasrec]=0.5       [ml-1m,fearec]=0.5        [ml-1m,bsarec]=0.7
+    [kuairand,mf]=0.5          [kuairand,grurec]=0.7     [kuairand,sasrec]=0.5
+    [kuairand,tisasrec]=0.5    [kuairand,fearec]=0.5     [kuairand,bsarec]=0.5
 )
-
 
 declare -A BSAREC_ALPHA_FOR=( [micro_video]=0.7 [ml-1m]=0.7 [kuairand]=0.9 )
 
-# DATASETS=(micro_video ml-1m kuairand)
-DATASETS=(micro_video ml-1m)
-BACKBONES=(mf sasrec tisasrec fearec bsarec)
+DATASETS=(kuairand)
+BACKBONES=(tisasrec fearec bsarec)
 ABLATION=shared
 SCORE_NORM=normalized
 TAU=0.1
 WEIGHTS_PATH=./weights_hawkes_anova_generalize
-ALPHA1_FOR=(0.1 0.3 0.5 0.7 0.9)
+GAMMA_GRID=(0.1 0.5 1.0 3.0 10.0)
 
 experiments=()
 for dataset in "${DATASETS[@]}"; do
     for model in "${BACKBONES[@]}"; do
         script="${SCRIPT_FOR[$model]}"
-        # alpha1="${ALPHA1_FOR[${dataset},${model}]}"
-        gamma="${GAMMA_FOR[${dataset},${model}]}"
+        alpha1="${ALPHA1_FOR[${dataset},${model}]}"
 
         extra_args=""
         if [ "$model" == "bsarec" ]; then
             extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=1"
         fi
 
-        # for gamma in "${GAMMA_GRID[@]}"; do
-        for alpha1 in "${ALPHA1_FOR[@]}"; do
+        for gamma in "${GAMMA_GRID[@]}"; do
             experiments+=("${script} --model-name=${model} --dataset=${dataset} --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=${ABLATION} --tau=${TAU} --alpha1=${alpha1} ${extra_args} --score-norm=${SCORE_NORM} --lambda-cen=${gamma} --weights_path=${WEIGHTS_PATH} --evaluate-interval=250 --epochs=500")
         done
     done
