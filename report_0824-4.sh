@@ -127,6 +127,7 @@ ABLATION=shared
 SCORE_NORM=normalized
 TAU=0.1
 WEIGHTS_PATH=./weights_hawkes_anova_generalize
+SEED_GRID=(2 3 4)
 
 experiments=()
 for dataset in "${DATASETS[@]}"; do
@@ -140,8 +141,8 @@ for dataset in "${DATASETS[@]}"; do
             extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=1"
         fi
 
-        experiments+=("${script} --model-name=${model} --dataset=${dataset} --seed=1 --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=${ABLATION} --tau=${TAU} --alpha1=${alpha1} ${extra_args} --score-norm=${SCORE_NORM} --lambda-cen=${gamma} --weights_path=${WEIGHTS_PATH} --evaluate-interval=250 --epochs=500")
-
+        for seed in "${SEED_GRID[@]}"; do
+            experiments+=("${script} --model-name=${model} --dataset=${dataset} --seed=${seed} --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --ablation=${ABLATION} --tau=${TAU} --alpha1=${alpha1} ${extra_args} --score-norm=${SCORE_NORM} --lambda-cen=${gamma} --weights_path=${WEIGHTS_PATH} --evaluate-interval=250 --epochs=500")
         done
     done
 done
