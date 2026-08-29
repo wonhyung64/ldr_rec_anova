@@ -122,12 +122,12 @@ declare -A BSAREC_ALPHA_FOR=( [micro_video]=0.7 [ml-1m]=0.7 [kuairand]=0.9 )
 # DATASETS=(micro_video)
 # DATASETS=(ml-1m)
 DATASETS=(kuairand)
-BACKBONES=(mf grurec sasrec tisasrec fearec bsarec)
+BACKBONES=(tisasrec fearec)
 ABLATION=shared
 SCORE_NORM=normalized
 TAU=0.1
 WEIGHTS_PATH=./weights_hawkes_anova_generalize
-SEED_GRID=(2 3 4)
+SEED_GRID=(3 4)
 
 experiments=()
 for dataset in "${DATASETS[@]}"; do
