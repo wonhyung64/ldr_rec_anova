@@ -127,7 +127,7 @@ ABLATION=shared
 SCORE_NORM=normalized
 TAU=0.1
 WEIGHTS_PATH=./weights_hawkes_anova_generalize
-SEED_GRID=(2 3)
+SEED_GRID=(2 3 4)
 
 experiments=()
 for dataset in "${DATASETS[@]}"; do
