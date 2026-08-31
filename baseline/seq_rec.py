@@ -236,8 +236,6 @@ for (split_name, data_split) in eval_datasets:
 
     pred_list, gt_list = [], []
     model.eval()
-    with torch.no_grad():
-        mu, alpha, beta = model.prior_parameters_from_embeddings()
 
     for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
         hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
