@@ -43,8 +43,8 @@ if file_name.endswith(".py"):
 if wandb_login:
     expt_num = f'{datetime.now().strftime("%y%m%d_%H%M%S_%f")}'
     args.expt_name = f"{file_name.split('.')[-2]}_{args.model_name}_{expt_num}"
-    wandb_var = wandb.init(project="ldr_rec_norm_backbone", config=vars(args))
-    # wandb_var = wandb.init(project="ldr_rec_backbone", config=vars(args))
+    # wandb_var = wandb.init(project="ldr_rec_norm_backbone", config=vars(args))
+    wandb_var = wandb.init(project="ldr_rec_pop", config=vars(args))
     wandb.run.name = args.expt_name
 
 
@@ -91,8 +91,8 @@ epoch = 0
 
 
 save_dir = Path(args.save_path)
-pattern = f"norm_backbone_{args.model_name}_e???_seed{args.seed}.pt"
-# pattern = f"_backbone_{args.model_name}_e???_seed{args.seed}.pt"
+# pattern = f"norm_backbone_{args.model_name}_e???_seed{args.seed}.pt"
+pattern = f"_backbone_{args.model_name}_e???_seed{args.seed}.pt"
 matched_files = sorted(save_dir.glob(pattern))
 if len(matched_files) > 0:
     recent_file = max(matched_files, key=get_epoch)
@@ -119,14 +119,14 @@ while epoch < args.epochs:
         anchor_hist_items = torch.tensor(dataset.train_hist_item_list[hot_sample_idx], dtype=torch.long, device=args.device)
         anchor_hist_times = torch.tensor(dataset.train_hist_time_list[hot_sample_idx], dtype=torch.long, device=args.device)
 
-        pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
-        neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
-        # u = model.encode_user(anchor_hist_items, anchor_user)
-        # mini_batch, recdim = u.shape
-        # v = model.get_item_repr(pos_item).reshape(mini_batch, -1, recdim)
-        # pos_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
-        # v = model.get_item_repr(neg_item).reshape(mini_batch, -1, recdim)
-        # neg_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
+        # pos_score = score_pair(model, pos_item, anchor_hist_items, anchor_user)
+        # neg_score = score_pair(model, neg_item, anchor_hist_items, anchor_user)
+        u = model.encode_user(anchor_hist_items, anchor_user)
+        mini_batch, recdim = u.shape
+        v = model.get_item_repr(pos_item).reshape(mini_batch, -1, recdim)
+        pos_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
+        v = model.get_item_repr(neg_item).reshape(mini_batch, -1, recdim)
+        neg_score = torch.sum(u.unsqueeze(1) * v, dim=-1)
 
         user_loss = -(F.logsigmoid(pos_score) + F.logsigmoid(-neg_score).sum(-1, keepdim=True)).sum()
         optimizer.zero_grad()
@@ -143,8 +143,8 @@ while epoch < args.epochs:
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_user_loss,
-        }, f"{args.save_path}/norm_backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
-        # }, f"{args.save_path}/_backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
+        # }, f"{args.save_path}/norm_backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
+        }, f"{args.save_path}/_backbone_{args.model_name}_e{epoch}_seed{args.seed}.pt")
 
 
 
@@ -163,10 +163,10 @@ while epoch < args.epochs:
             user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
             with torch.no_grad():
-                pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
-                # u = model.encode_user(hist_item_t, user_t)
-                # v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
-                # pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
+                # pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+                u = model.encode_user(hist_item_t, user_t)
+                v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
+                pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
 
             exclude_items = list(dataset._allPos[user])
             pred[exclude_items] = -9999
@@ -199,10 +199,10 @@ for (user, item), pos_time_val in dataset.test_user_item_time.items():
     user_t = torch.tensor([user], dtype=torch.long, device=args.device)
 
     with torch.no_grad():
-        pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
-        # u = model.encode_user(hist_item_t, user_t)
-        # v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
-        # pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
+        # pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+        u = model.encode_user(hist_item_t, user_t)
+        v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
+        pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
 
     exclude_items = list(dataset._allPos[user])
     pred[exclude_items] = -9999
@@ -217,7 +217,57 @@ if wandb_login:
     wandb_var.log(dict(zip([f"test_recall_{k}" for k in args.topks], test_results[1])))
     wandb_var.log(dict(zip([f"test_ndcg_{k}" for k in args.topks], test_results[2])))
     wandb_var.log(dict(zip([f"test_mrr_{k}" for k in args.topks], test_results[3])))
+
+
+
+#%%
+eval_datasets = [
+    ("head_overall", dataset.test_head_overall_dict),
+    ("head_recent_3d", dataset.test_head_recent_3d_dict),
+    ("head_recent_7d", dataset.test_head_recent_7d_dict),
+    ("tail_overall", dataset.test_tail_overall_dict),
+    ("tail_recent_3d", dataset.test_tail_recent_3d_dict),
+    ("tail_recent_7d", dataset.test_tail_recent_7d_dict),
+]
+
+
+
+for (split_name, data_split) in eval_datasets:
+
+    pred_list, gt_list = [], []
+    model.eval()
+    with torch.no_grad():
+        mu, alpha, beta = model.prior_parameters_from_embeddings()
+
+    for (user, item), pos_time_val in dataset.set_to_pair(data_split, dataset.time_dict, dataset.time_unit).items():
+        hist_item_np, hist_time_np = dataset.build_histories(zip([user], [0], [pos_time_val]), args.max_seq_len)
+        hist_item_t = torch.tensor(hist_item_np, dtype=torch.long, device=args.device)
+        user_t = torch.tensor([user], dtype=torch.long, device=args.device)
+
+
+        with torch.no_grad():
+            # pred = score_all(model, hist_item_t, user_t).squeeze(0).cpu()
+            u = model.encode_user(hist_item_t, user_t)
+            v_all = model.get_item_repr(torch.arange(model.num_items, device=hist_item_t.device))
+            pred = torch.matmul(u, v_all.T).squeeze(0).cpu()
+
+        exclude_items = list(dataset._allPos[user])
+        pred[exclude_items] = -9999
+        _, pred_k = torch.topk(pred, k=max(args.topks))
+        pred_list.append(pred_k.cpu())
+        gt_list.append([item])
+
+    test_results = computeTopNAccuracy(gt_list, pred_list, args.topks)
+
+    if wandb_login:
+        wandb_var.log(dict(zip([f"test_{split_name}_precision_{k}_{epoch}" for k in args.topks], test_results[0])))
+        wandb_var.log(dict(zip([f"test_{split_name}_recall_{k}_{epoch}" for k in args.topks], test_results[1])))
+        wandb_var.log(dict(zip([f"test_{split_name}_ndcg_{k}_{epoch}" for k in args.topks], test_results[2])))
+        wandb_var.log(dict(zip([f"test_{split_name}_mrr_{k}_{epoch}" for k in args.topks], test_results[3])))
+
+if wandb_login:
     wandb_var.finish()
+
 
 
 
