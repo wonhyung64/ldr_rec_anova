@@ -119,7 +119,7 @@ declare -A GAMMA_FOR=(
 
 declare -A BSAREC_ALPHA_FOR=( [micro_video]=0.7 [ml-1m]=0.7 [kuairand]=0.9 )
 
-# DATASETS=(micro_video ml-1m kuairand)
+DATASETS=(micro_video ml-1m kuairand)
 BACKBONES=(mf grurec sasrec tisasrec fearec bsarec)
 ABLATION=shared
 SCORE_NORM=normalized
