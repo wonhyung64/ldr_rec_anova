@@ -4,7 +4,7 @@ read -r -d '' SLURM_SCRIPT<<'EOF'
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=2
-#SBATCH --partition=gpu5
+#SBATCH --partition=gpu5,gpu3,gpu4,gpu2,gpu6,gpu1
 ##
 #SBATCH --job-name=HawkesAnovaGeneralize
 #SBATCH -o logs/s_%j.out
