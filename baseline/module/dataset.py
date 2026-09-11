@@ -399,6 +399,6 @@ class UserItemTime(Dataset):
                     u = pos_u_b
                     r = np.random.randint(0, self.n_user - 1, size=len(event_idx))
                     r += (r >= u)
-                    hot_neg_user[event_idx, 0] = r
+                    cold_neg_user[event_idx, 0] = r
 
             self.cold_neg_user_list = cold_neg_user.astype(np.int64)

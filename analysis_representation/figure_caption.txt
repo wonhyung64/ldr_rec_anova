@@ -1,0 +1,14 @@
+Figure: Geometry of user-context representations under temporal popularity bias (SASRec).
+Column (a) visualizes Vanilla and Ours in a single, jointly-fit PCA space (fit once on the pooled
+representations of both models at a representative seed, then used to project each); column (b) compares
+their cosine alignment to each model's own dominant representation direction c_hat = mean(h_bar_i) / ||...||;
+column (c) relates the empirical, model-independent temporal popularity concentration
+D_KL(p_hat(.|b) || Unif(V)) of each test-period time bucket to the directional concentration
+R_b = ||mean_{i in b} h_bar_i||_2 of each model's own context vectors in that bucket. Lower R and broader,
+less contour-concentrated PCA geometry indicate reduced dominance of a shared representation direction.
+Quantitative panels (b, c) aggregate 4 random seeds ([1, 2, 3, 4]); panel (a) uses a single
+median-performance seed (by +Ours L_uni) for a paired qualitative comparison, documented per dataset in the
+run log. These patterns are consistent with the theoretical concentration mechanism (Theorem 1 / Corollary 1)
+by which a sufficiently strong shared direction absorbed into user-context representations increases their
+pairwise concentration; they are reported as an empirical, correlational analysis and do not establish that
+non-identifiability of popularity and utility causes representation collapse in general.
