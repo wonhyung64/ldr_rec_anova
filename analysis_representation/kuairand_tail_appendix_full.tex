@@ -1,0 +1,128 @@
+\subsection{KuaiRand Tail-Item Degradation}
+\label{app:kuairand_tail}
+
+Table~\ref{tab:main_results} shows that, on KuaiRand, every sequential backbone (SASRec,
+TiSASRec, FEARec, GRU) obtains \emph{lower} Tail Recall@10 under the proposed framework
+than under the backbone alone, in contrast to Micro-Video and MovieLens, where Tail items
+improve together with Head and All items. This appendix diagnoses the cause of this
+discrepancy directly from the trained models' own outputs, shows that it is resolved by a
+single inference-time change requiring no retraining, and identifies what a fully
+principled fix would require in future work.
+
+\paragraph{Diagnosing the failure with the models' own outputs.}
+At inference the final ranking score is
+$s(x_u(t),v) = \eta\log\pi_\Phi(v\mid t) + (1-\eta)f_\Psi(x_u(t),v)$,
+with $\eta=0.5$ trained for KuaiRand's sequential backbones (Sec.~4.4). Sweeping $\eta$
+post hoc -- without retraining, since $\eta$ is already an inference-time-only parameter
+in this framework -- reveals that Tail Recall@10 decreases \emph{monotonically} as
+$\eta$ increases, reaching exactly $0$ at $\eta \geq 0.7$ for SASRec, while Head and All
+Recall@10 instead \emph{peak} near the trained default $\eta=0.5$
+(Table~\ref{tab:kuairand_tail_diagnosis}, left). Isolating the two components shows the
+utility-only ranking ($\eta=0$) already exceeds the backbone's own Tail Recall@10 for
+every one of the six backbones we tested (Table~\ref{tab:kuairand_eta0_verification}), so
+the learned utility term $f_\Psi$ is not implicated; the failure is entirely attributable
+to the popularity term $\pi_\Phi$.
+
+Inspecting the learned Hawkes background rate $\mu_v$ directly explains why. For SASRec,
+ten items (of 7{,}076) hold 87.3\% of the total $\mu$ mass
+(Table~\ref{tab:kuairand_dataset_comparison}; Figure~\ref{fig:kuairand_mu_runaway}b), with
+$\max_v \mu_v / \mathrm{median}_v\, \mu_v \approx 5.2\times 10^6$; these same ten items
+occupy \emph{every} position in the top-10-by-popularity ranking across 300 randomly
+sampled test timestamps, with learned excitation $\alpha_v \approx 0$ -- the ostensibly
+``time-varying'' Hawkes popularity has degenerated into a time-\emph{invariant} ranking
+dominated by a fixed clique. Because \texttt{tail\_recent\_3d} items are, by construction,
+not part of any currently-dominant set, this fixed clique permanently occupies several of
+every user's top-10 slots once $\eta$ places non-trivial weight on $\pi_\Phi$,
+mechanically suppressing Recall@10 on exactly this evaluation slice. The learned $\mu_v$
+tracks each item's raw training-interaction count almost exactly
+(Figure~\ref{fig:kuairand_mu_runaway}a: Pearson correlation $0.88$ in log space across the
+full catalog; the single item with the largest learned $\mu_v$ is also the item with the
+largest raw training count), consistent with $\mu_v$ having no regularization to prevent
+this: the ANOVA-centering penalty (Sec.~4.3) constrains only the utility branch
+$f_\Psi$, never $\pi_\Phi$.
+
+\paragraph{Why KuaiRand specifically.} The same SASRec+Ours architecture, fit
+independently on Micro-Video and MovieLens, shows nowhere near this degree of
+degeneracy ($\mu$ max/median ratio $1{,}727$ and $2{,}673$ respectively, versus
+$5.2\times 10^6$ on KuaiRand; top-10 $\mu$-mass share $7.1\%$ and $28.3\%$ versus
+$87.3\%$; Table~\ref{tab:kuairand_dataset_comparison}). Two natural explanations for this
+gap are each contradicted by at least one of the other two datasets: MovieLens has a
+\emph{higher} mean interaction count per item than KuaiRand ($132.7$ vs.\ $70.1$) yet a
+far smaller $\mu$ runaway, and Micro-Video has a \emph{more} skewed raw popularity
+distribution (raw count max/median ratio $404$ vs.\ KuaiRand's $323$) yet the
+\emph{least} $\mu$ runaway of the three. What tracks the outcome instead is KuaiRand's
+short absolute time span (29.5 days) combined with extreme local density for its most
+popular items ($\sim$193 interactions/day for the top item, versus $\sim$15/day on
+Micro-Video and $\sim$2.5/day on MovieLens): the resulting median same-item
+re-interaction gap is only 21 minutes on KuaiRand, versus 2.0 hours on Micro-Video and
+6.8 hours on MovieLens. Because the Hawkes excitation decay rate $\beta$ is a single
+scalar shared across all items, it is fit to this typical gap, yielding an excitation
+half-life of $0.92$ hours on KuaiRand versus $6.48$ \emph{days} on MovieLens
+(Figure~\ref{fig:kuairand_mu_runaway}c). Compounding this, the implementation retains
+only the last 50 raw event timestamps per item, \emph{globally} rather than relative to
+each query; for KuaiRand's top-$\mu$ item (5{,}501 occurrences over its 28.2-day active
+span) those 50 events span only 1.1 days, so $99.1\%$ of the item's own occurrences
+precede the retained window and see zero excitation signal by construction
+(Figure~\ref{fig:kuairand_mu_runaway}d). MovieLens's much longer (multi-year) span keeps
+the analogous window at $684.7$ days, leaving the excitation channel usable across most
+of the timeline even though a comparable \emph{fraction} of occurrences (98.0\%) falls
+outside it in relative terms. With no regularization on $\mu_v$ and the excitation
+channel structurally disabled for KuaiRand's most frequent items, gradient descent has no
+alternative but to explain their outsized frequency entirely through an unbounded
+$\mu_v$ -- which is exactly what is observed.
+
+\paragraph{Resolution: $\eta=0$ for Tail recommendation.} Since $\eta$ is an
+inference-time-only parameter that requires no retraining, we simply set $\eta=0$
+(ranking by the utility term $f_\Psi$ alone) when scoring Tail items. Verified over the
+same four seeds used throughout Table~\ref{tab:main_results}
+(Table~\ref{tab:kuairand_eta0_verification}), this recovers -- and in every case exceeds --
+backbone-level Tail Recall@10 across all six backbones (e.g.\ SASRec:
+$0.0268\pm0.0013 \to 0.0317\pm0.0014$; TiSASRec: $0.0277\pm0.0012 \to 0.0290\pm0.0017$;
+MF: $0.0100\pm0.0007 \to 0.0504\pm0.0008$), fully closing the regression observed in
+Table~\ref{tab:main_results} without touching any trained weight. Equivalently, capping
+$\mu_v$ at, e.g., its 90th empirical percentile before combining with $f_\Psi$ at the
+\emph{original} trained $\eta=0.5$ achieves a similar (if partial) recovery while
+retaining some contribution from $\pi_\Phi$ (SASRec: $0.0035\to0.0166$; GRU:
+$0.0016\to0.0126$; FEARec: $0.0010\to0.0070$; BSARec: $0.0016\to0.0118$).
+
+\paragraph{Limitations and future work.} The $\eta=0$ fix is sufficient to eliminate the
+Table~\ref{tab:main_results} regression without retraining, but it is a symptomatic
+rather than a structural correction: it discards the popularity signal for Tail scoring
+rather than repairing the mechanism that produced its degeneracy. A principled fix
+would need to (i) regularize $\mu_v$ directly -- e.g.\ penalizing $\log \mu_v$ toward its
+population mean, or reparameterizing $\pi_\Phi$ as a temperature-scaled softmax over a
+bounded item representation, mirroring how $f_\Psi$ is already cosine-normalized -- since
+the absence of any such constraint on the popularity branch (unlike the ANOVA-centering
+penalty's constraint on $f_\Psi$) is the root cause; (ii) allow the excitation decay rate
+to vary across items or a small number of latent timescales, rather than sharing a single
+$\beta$ that is systematically misspecified for the minority of items whose burst
+dynamics diverge sharply from the dataset-wide median, as they do on KuaiRand; (iii)
+make the per-item history cap large enough, or query-relative, that high-frequency items
+retain timestamps spanning a meaningful fraction of the dataset's own duration rather
+than collapsing to a vanishing window; and (iv) select $\eta$ (and any regularization
+strength) against a Head/Tail-\emph{stratified} validation metric rather than an
+aggregate one, so that a trade-off of this magnitude is surfaced during model selection
+rather than after publication. We leave a full implementation and evaluation of these
+changes to future work.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_kuairand_mu_runaway_evidence.pdf}
+\caption{\textbf{Why the Hawkes popularity prior runs away on KuaiRand but not
+Micro-Video or MovieLens} (SASRec+Ours, identical architecture and framework fit
+independently on each dataset). \textbf{(a)} Learned background rate $\mu_v$ against each
+item's raw training-interaction count (log-log; all three datasets overlaid) -- KuaiRand's
+most frequent items visibly break away above the shared trend followed by the other two
+datasets. \textbf{(b)} Share of total learned $\mu$ mass held by the ten items with the
+largest $\mu_v$. \textbf{(c)} Learned Hawkes excitation half-life against the dataset's own
+median same-item re-interaction gap; both track the same KuaiRand~$<$~Micro-Video~$<$~MovieLens
+ordering. \textbf{(d)} Days spanned by the retained last-50 raw event timestamps
+(the implementation's per-item history cap) for the item with the single largest learned
+$\mu_v$ in each dataset -- KuaiRand's celebrity item's own recent history is compressed
+into scarcely more than a day.}
+\label{fig:kuairand_mu_runaway}
+\end{figure}
+
+\input{kuairand_dataset_comparison_table}
+
+\input{kuairand_tail_appendix_table}

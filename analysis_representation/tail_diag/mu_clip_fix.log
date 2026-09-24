@@ -1,0 +1,36 @@
+[load_dataset] loaded from cache in 0.8s (item_time_array rescaled to days)
+N pairs 12935
+
+=== sasrec (eta=0.5) === default(uncapped) tail R@10=0.0035
+  cap@p90 (mu<= 0.0806, orig max=9262.2): tail R@10=0.0166
+  cap@p95 (mu<= 0.3047, orig max=9262.2): tail R@10=0.0114
+  cap@p99 (mu<= 4.5330, orig max=9262.2): tail R@10=0.0065
+  cap@p99.9 (mu<= 245.2256, orig max=9262.2): tail R@10=0.0043
+
+=== grurec (eta=0.5) === default(uncapped) tail R@10=0.0016
+  cap@p90 (mu<= 0.0285, orig max=4038.3): tail R@10=0.0126
+  cap@p95 (mu<= 0.1052, orig max=4038.3): tail R@10=0.0094
+  cap@p99 (mu<= 1.5530, orig max=4038.3): tail R@10=0.0049
+  cap@p99.9 (mu<= 111.4222, orig max=4038.3): tail R@10=0.0019
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+=== fearec (eta=0.5) === default(uncapped) tail R@10=0.0010
+  cap@p90 (mu<= 0.0453, orig max=5113.4): tail R@10=0.0070
+  cap@p95 (mu<= 0.1673, orig max=5113.4): tail R@10=0.0056
+  cap@p99 (mu<= 2.8679, orig max=5113.4): tail R@10=0.0029
+  cap@p99.9 (mu<= 234.1303, orig max=5113.4): tail R@10=0.0012
+
+=== bsarec (eta=0.5) === default(uncapped) tail R@10=0.0016
+  cap@p90 (mu<= 0.0736, orig max=9006.0): tail R@10=0.0118
+  cap@p95 (mu<= 0.2827, orig max=9006.0): tail R@10=0.0083
+  cap@p99 (mu<= 5.6328, orig max=9006.0): tail R@10=0.0038
+  cap@p99.9 (mu<= 388.8192, orig max=9006.0): tail R@10=0.0020
+
+saved /Users/wonhyung64/Github/ldr_rec_anova/analysis_representation/tail_diag/mu_clip_fix_results.json

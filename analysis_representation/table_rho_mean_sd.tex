@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\caption{Mean $\pm$ standard deviation over 30 random seeds for representation uniformity ($\mathcal{L}_{\mathrm{uni}}$) and ground-truth ranking-recovery Recall@10, at each popularity-confounding strength $\rho$. \textbf{Bold} (Ours) is significantly different from Vanilla under a paired $t$-test at every $\rho$ ($p<0.001$; see Appendix~\ref{app:rho_sweep_stats} for exact values).}
+\label{tab:rho_mean_sd}
+\begin{tabular}{c cc cc}
+\toprule
+ & \multicolumn{2}{c}{$\mathcal{L}_{\mathrm{uni}}$} & \multicolumn{2}{c}{Recall@10} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+$\rho$ & Vanilla & Ours & Vanilla & Ours \\
+\midrule
+0 & -1.525 $\pm$ 0.048 & \textbf{-3.746 $\pm$ 0.007} & 0.0657 $\pm$ 0.0047 & \textbf{0.0558 $\pm$ 0.0027} \\
+0.5 & -1.500 $\pm$ 0.049 & \textbf{-3.747 $\pm$ 0.006} & 0.0457 $\pm$ 0.0044 & \textbf{0.0566 $\pm$ 0.0034} \\
+1 & -1.439 $\pm$ 0.049 & \textbf{-3.750 $\pm$ 0.006} & 0.0299 $\pm$ 0.0043 & \textbf{0.0571 $\pm$ 0.0023} \\
+2 & -1.317 $\pm$ 0.056 & \textbf{-3.749 $\pm$ 0.006} & 0.0247 $\pm$ 0.0040 & \textbf{0.0577 $\pm$ 0.0023} \\
+4 & -1.202 $\pm$ 0.042 & \textbf{-3.751 $\pm$ 0.006} & 0.0294 $\pm$ 0.0046 & \textbf{0.0570 $\pm$ 0.0023} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\caption{\textbf{The Tail-item damage is not specific to the Hawkes parameterization.}
+KuaiRand Tail Recall@10, SASRec+Ours (seed 1), trained default $\eta=0.5$; same utility
+checkpoint $f_\Psi$ throughout, only the popularity term swapped
+($s=\eta\log\pi(v\mid t)+(1-\eta)f_\Psi$).}
+\label{tab:popularity_substitution}
+\begin{tabular}{l c}
+\toprule
+Popularity source & Tail Recall@10 \\
+\midrule
+Utility only ($f_\Psi$ alone) & 0.0335 \\
+Learned Hawkes $\pi_\Phi$ & \textbf{0.0035} \\
+3-day sliding-window empirical & \textbf{0.0121} \\
+Static training-frequency & \textbf{0.0140} \\
+\bottomrule
+\end{tabular}
+\end{table}

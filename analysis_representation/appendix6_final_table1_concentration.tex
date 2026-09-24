@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\caption{\textbf{KuaiRand's local popularity is not unusually concentrated, but the
+Hawkes prior fit to it is.} $H_{norm}$/top-5\% mass: empirical (3-day-window snapshots)
+vs.\ trained Hawkes intensity $\pi_\Phi(v\mid t)$ at the same snapshots (SASRec+Ours,
+seed 1). JSD: mean adjacent-day Jensen--Shannon divergence (instability). Last row: ratio
+of mean learned $\mu_v$ between the 99--100th and 80--90th item training-frequency
+percentiles (Fig.~\ref{fig:mechanism_effect}a).}
+\label{tab:kuairand_concentration_evidence}
+\begin{tabular}{l ccc}
+\toprule
+ & Micro-Video & MovieLens & KuaiRand \\
+\midrule
+$H_{norm}$: empirical $\to$ Hawkes & 0.750 $\to$ 0.822 & 0.624 $\to$ 0.701 & \textbf{0.828 $\to$ 0.242} \\
+Top-5\% mass: empirical $\to$ Hawkes & 0.794 $\to$ 0.621 & 0.802 $\to$ 0.740 & \textbf{0.520 $\to$ 0.994} \\
+Adjacent-day JSD (bits) & 0.228 & 0.265 & \textbf{0.039 (lowest)} \\
+$\mu_v$ jump, top 1\% vs.\ 80--90th pct.\ & 37.4$\times$ & 45.0$\times$ & \textbf{5{,}872.7$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}

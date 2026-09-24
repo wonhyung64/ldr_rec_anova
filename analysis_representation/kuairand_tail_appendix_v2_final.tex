@@ -1,0 +1,70 @@
+Continuing from Table 4 (App.~A.6) %% TODO: replace with \ref{...} to your actual \label on Table 4
+: utility-only inference already recovers Tail Recall@10 for every backbone, so the
+degradation traces to the popularity component reintroduced at inference, not to the
+utility model's own Tail discrimination. We now locate its source.
+
+At daily 3-day-window snapshots, KuaiRand's own local popularity is, if anything, less
+concentrated and more stable than Micro-Video's or MovieLens's (normalized entropy
+$H_{norm}=0.828$, the highest of the three; adjacent-day Jensen--Shannon divergence
+$0.039$ bits, the lowest). Yet the trained Hawkes intensity $\pi_\Phi(v\mid t)$ fit to
+this data is extremely over-concentrated -- but only on KuaiRand: $H_{norm}$ collapses to
+$0.242$ and top-5\% mass rises from $0.520$ to $0.994$, while on Micro-Video and MovieLens
+the fitted model is, like the data, mildly \emph{less} concentrated than its own empirical
+baseline (Figure~\ref{fig:empirical_vs_hawkes}, Table~\ref{tab:kuairand_concentration_evidence}).
+Since this gap does not exist in the data the model was fit to, it is a genuine
+model-side over-concentration. Binning items by training-frequency percentile shows why:
+$\mu_v$ grows smoothly into the top decile on Micro-Video and MovieLens (37--45$\times$
+from the 80--90th to the 99--100th percentile), but jumps discontinuously by
+$5{,}872.7\times$ over the same range on KuaiRand -- a qualitatively different,
+discontinuous relationship absent from the other two datasets
+(Figure~\ref{fig:mechanism_effect}a).
+
+This over-concentrated term systematically damages Tail ranking once reintroduced via
+$s=\eta\log\pi_\Phi(v\mid t)+(1-\eta)f_\Psi(x_u(t),v)$: Tail Recall@10 decreases strictly
+monotonically in $\eta$ for all six KuaiRand backbones from $\eta=0.1$ onward, and the
+true item's rank worsens for the majority of Tail test events across every backbone
+(Figure~\ref{fig:mechanism_effect}b--c). Because \texttt{tail\_recent\_3d} items are by
+construction not part of the currently-dominant set, the small over-concentrated clique
+occupies top-10 slots regardless of individual preference, mechanically suppressing
+Recall@10 on exactly this evaluation slice.
+
+This vulnerability is not specific to the Hawkes parameterization: replacing it with a
+much simpler 3-day sliding-window or static training-frequency popularity -- same utility
+checkpoint, same $\eta$ -- damages Tail Recall@10 in the same direction, though less
+severely (Table~\ref{tab:popularity_substitution}: utility-only $0.0335\to$ Hawkes
+$0.0035$, sliding-window $0.0121$, static $0.0140$). Reintroducing \emph{any} strongly
+concentrated, population-level popularity signal through a single global $\eta$ is thus a
+general risk for Tail items; KuaiRand's unconstrained, unregularized background-rate
+parameterization simply amplifies this risk far beyond what the other two popularity
+sources, or the same architecture fit to the other two datasets, produce. The
+popularity--utility decomposition itself remains effective -- the utility component alone
+already matches or exceeds the backbone on every architecture -- so the fix belongs to the
+popularity specification: a bounded/regularized background rate, item-adaptive or
+multi-timescale decay, or an explicitly time-varying $\mu_v(t)$ are natural directions for
+future work.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/appendix6/fig_empirical_vs_hawkes.pdf}
+\caption{\textbf{The learned Hawkes popularity is over-concentrated relative to the data
+it was fit to, only on KuaiRand.} Time-averaged cumulative popularity mass under the
+empirical local (3-day) distribution vs.\ the trained Hawkes intensity $\pi_\Phi(v\mid t)$
+(SASRec+Ours), same daily-snapshot protocol, all three datasets.}
+\label{fig:empirical_vs_hawkes}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/appendix6/fig_mechanism_effect.pdf}
+\caption{\textbf{Mechanism and effect.} (a) Mean learned $\mu_v$ vs.\ item
+training-frequency percentile: smooth growth on Micro-Video/MovieLens, a discontinuous
+top-decile jump on KuaiRand. (b) KuaiRand Tail Recall@10 vs.\ inference-time mixing weight
+$\eta$, all six backbones ($\star$ = trained default $\eta$). (c) Distribution of
+Tail-positive log-rank displacement (utility-only $\to$ combined score), all six
+backbones.}
+\label{fig:mechanism_effect}
+\end{figure}
+
+\input{appendix6_final_table1_concentration}
+
+\input{appendix6_final_table2_substitution}

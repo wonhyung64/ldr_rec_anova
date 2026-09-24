@@ -1,0 +1,47 @@
+Rho-sweep numeric summary (n=30 seeds per rho; sd uses ddof=1; SEM = sd / sqrt(30))
+
+--- L_uni ---
+  rho= 0.0: Vanilla mean=-1.5250 sd=0.0478 sem=0.0087 | Ours mean=-3.7459 sd=0.0068 sem=0.0012
+  rho= 0.5: Vanilla mean=-1.4996 sd=0.0489 sem=0.0089 | Ours mean=-3.7472 sd=0.0056 sem=0.0010
+  rho= 1.0: Vanilla mean=-1.4392 sd=0.0491 sem=0.0090 | Ours mean=-3.7495 sd=0.0061 sem=0.0011
+  rho= 2.0: Vanilla mean=-1.3167 sd=0.0559 sem=0.0102 | Ours mean=-3.7490 sd=0.0058 sem=0.0011
+  rho= 4.0: Vanilla mean=-1.2015 sd=0.0417 sem=0.0076 | Ours mean=-3.7510 sd=0.0056 sem=0.0010
+
+--- Recall@10 ---
+  rho= 0.0: Vanilla mean=+0.0657 sd=0.0047 sem=0.0009 | Ours mean=+0.0558 sd=0.0027 sem=0.0005
+  rho= 0.5: Vanilla mean=+0.0457 sd=0.0044 sem=0.0008 | Ours mean=+0.0566 sd=0.0034 sem=0.0006
+  rho= 1.0: Vanilla mean=+0.0299 sd=0.0043 sem=0.0008 | Ours mean=+0.0571 sd=0.0023 sem=0.0004
+  rho= 2.0: Vanilla mean=+0.0247 sd=0.0040 sem=0.0007 | Ours mean=+0.0577 sd=0.0023 sem=0.0004
+  rho= 4.0: Vanilla mean=+0.0294 sd=0.0046 sem=0.0008 | Ours mean=+0.0570 sd=0.0023 sem=0.0004
+
+--- paired Ours-vs-Vanilla tests (per rho) ---
+  L_uni:
+    rho= 0.0: diff(Ours-Vanilla)=-2.2210  paired-t p=6.608e-50  wilcoxon p=1.863e-09
+    rho= 0.5: diff(Ours-Vanilla)=-2.2476  paired-t p=1.224e-49  wilcoxon p=1.863e-09
+    rho= 1.0: diff(Ours-Vanilla)=-2.3103  paired-t p=9.025e-50  wilcoxon p=1.863e-09
+    rho= 2.0: diff(Ours-Vanilla)=-2.4322  paired-t p=3.597e-49  wilcoxon p=1.863e-09
+    rho= 4.0: diff(Ours-Vanilla)=-2.5495  paired-t p=2.948e-53  wilcoxon p=1.863e-09
+  Recall@10:
+    rho= 0.0: diff(Ours-Vanilla)=-0.0099  paired-t p=1.201e-11  wilcoxon p=9.313e-09
+    rho= 0.5: diff(Ours-Vanilla)=+0.0109  paired-t p=6.623e-11  wilcoxon p=1.863e-09
+    rho= 1.0: diff(Ours-Vanilla)=+0.0272  paired-t p=2.644e-22  wilcoxon p=1.863e-09
+    rho= 2.0: diff(Ours-Vanilla)=+0.0330  paired-t p=9.603e-26  wilcoxon p=1.863e-09
+    rho= 4.0: diff(Ours-Vanilla)=+0.0276  paired-t p=7.567e-24  wilcoxon p=1.863e-09
+
+--- trend tests (Spearman rho vs metric, pooled n=150 per approach) ---
+  L_uni:
+    vanilla: r_s=+0.8990  p=6.040e-55
+       ours: r_s=-0.2534  p=1.752e-03
+  Recall@10:
+    vanilla: r_s=-0.7959  p=4.540e-34
+       ours: r_s=+0.1964  p=1.598e-02
+
+--- effect-size context for Ours' small L_uni trend ---
+  Vanilla L_uni range across rho: 0.3234
+  Ours    L_uni range across rho: 0.0050 (1.56% of Vanilla's range)
+
+--- sanity checks ---
+  Vanilla L_uni monotonically increasing (toward 0) over rho: True (values: [-1.525, -1.4996, -1.4392, -1.3167, -1.2015])
+  Vanilla Recall@10 decreases end-to-end (rho=0 vs rho=4): True (values: [0.0657, 0.0457, 0.0299, 0.0247, 0.0294])
+  Ours L_uni range / Vanilla L_uni range: 0.0156 (near flat if << 1)
+  Ours Recall@10 range / Vanilla Recall@10 range: 0.0447 (near flat if << 1)

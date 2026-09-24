@@ -1,7 +1,7 @@
 #%%
 """
 Semi-synthetic controlled experiment: sweeping the popularity-confounding
-strength alpha and checking Theorem 1 / Corollary 1's qualitative prediction
+strength rho and checking Theorem 1 / Corollary 1's qualitative prediction
 directly, rather than only observing "Ours has lower uniformity than Vanilla"
 on real data (as the existing Table 3 / analysis_representation.py do).
 
@@ -11,16 +11,16 @@ generator exactly) and a time-varying, long-tailed popularity signal pi0(v|t)
 (each item has a Gaussian "trend window" superimposed on a Zipf base rate),
 events are drawn from
 
-    p_alpha(v | x_u(t)) ~ pi0(v|t)^alpha * exp{f*(x_u(t), v)},
+    p_rho(v | x_u(t)) ~ pi0(v|t)^rho * exp{f*(x_u(t), v)},
 
-for alpha in {0, 0.5, 1, 2, 4}. alpha=0 removes popularity confounding
-entirely; alpha=1 is the paper's own formulation (Sec 3.2, eq. 2); alpha>1
+for rho in {0, 0.5, 1, 2, 4}. rho=0 removes popularity confounding
+entirely; rho=1 is the paper's own formulation (Sec 3.2, eq. 2); rho>1
 progressively strengthens the popularity-utility confound while the ground
 truth preference ranking f* is held fixed. All events across all users are
 pooled and split chronologically 80/10/10 (train/valid/test), mirroring the
 paper's own dataset protocol (Sec 5.1.1).
 
-For every alpha, two MF backbones are trained on the SAME synthetic
+For every rho, two MF backbones are trained on the SAME synthetic
 interactions:
   - "Vanilla": plain BPR/logistic loss (module/model.py, no popularity model),
     exactly the training objective in cf.py.
@@ -42,25 +42,32 @@ Two metrics are then computed directly from each trained model:
      needing to pick an inference-time blending weight gamma at all.
 
 If Theorem 1's mechanism is real, Vanilla's L_uni should approach 0 (representation
-collapse) as alpha grows while its ranking-recovery Recall@10 degrades (the
+collapse) as rho grows while its ranking-recovery Recall@10 degrades (the
 learned embeddings increasingly encode popularity instead of preference),
 whereas Ours should stay comparatively stable on both axes because popularity
 is routed through the separate Hawkes branch instead of being absorbed into
 the (centered) utility embeddings.
 
 Run from the repo root:
-    /Users/wonhyung64/miniforge3/envs/openmmlab/bin/python baseline/analysis_synthetic_alpha.py
+    /Users/wonhyung64/miniforge3/envs/openmmlab/bin/python baseline/analysis_synthetic_rho.py
+
+With 30 seeds x 5 rho x 2 approaches = 300 independent training runs, this is
+parallelized across processes (N_WORKERS, one CPU core each) since each
+(rho, seed, approach) run is fully independent.
 
 Outputs:
-    ./figures/synthetic_alpha_sweep.{png,pdf}
-    ./analysis_representation/synthetic_alpha_sweep.csv
+    ./figures/synthetic_rho_sweep.{png,pdf}
+    ./analysis_representation/synthetic_rho_sweep.csv
+    ./analysis_representation/synthetic_rho_significance.txt
 """
 import os
 import csv
+import multiprocessing as mp
 import numpy as np
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from scipy import stats
 from scipy.sparse import csr_matrix
 
 from module.utils import set_seed
@@ -70,11 +77,14 @@ from module.debias import build_unshared_debias_model
 from module.hawkes_choice import importance_corrected_choice_loss, anova_centering_penalty
 from module.procedure import computeTopNAccuracy
 
+torch.set_num_threads(1)   # each worker process handles one run; avoid oversubscribing cores
+
 # ----------------------------------------------------------------------
 # config
 # ----------------------------------------------------------------------
-ALPHA_GRID = [0.0, 0.5, 1.0, 2.0, 4.0]
-SEEDS = [1, 2, 3]
+RHO_GRID = [0.0, 0.5, 1.0, 2.0, 4.0]
+SEEDS = list(range(1, 31))   # 30 seeds per rho, for paired significance testing
+N_WORKERS = min(8, os.cpu_count() or 1)
 
 N_USER = 800
 N_ITEM = 200
@@ -83,7 +93,7 @@ T_DAYS = 30.0          # observation horizon
 EVENTS_PER_USER = 25
 POP_WIDTH = 4.0        # width (days) of each item's popularity "trend window"
 POP_ZIPF_EXP = 0.8     # long-tail exponent of the base popularity rate
-UTILITY_SCALE = 3.0    # scales f* so its spread is comparable to alpha=1 log-popularity spread
+UTILITY_SCALE = 3.0    # scales f* so its spread is comparable to rho=1 log-popularity spread
 
 RECDIM = 32
 BASELINE_TAU = 0.5     # Vanilla score_norm temperature (matches analysis_representation.py)
@@ -108,7 +118,7 @@ device = "cpu"
 
 #%%
 # semi-synthetic generator
-def generate_events(alpha, rng):
+def generate_events(rho, rng):
     z = rng.normal(size=(N_USER, D_TRUE)) / np.sqrt(D_TRUE)
     w = rng.normal(size=(N_ITEM, D_TRUE)) / np.sqrt(D_TRUE)
     true_utility = UTILITY_SCALE * (z @ w.T)   # f*(u, v), time-invariant -- matches MF's inductive bias
@@ -129,7 +139,7 @@ def generate_events(alpha, rng):
         times = np.sort(rng.uniform(0, T_DAYS, size=EVENTS_PER_USER))
         seen = np.zeros(N_ITEM, dtype=bool)
         for t in times:
-            logits = alpha * log_pi0(t) + true_utility[u]
+            logits = rho * log_pi0(t) + true_utility[u]
             logits = np.where(seen, -np.inf, logits)
             logits = logits - logits.max()
             p = np.exp(logits)
@@ -197,7 +207,7 @@ class SyntheticUserItemTime(UserItemTime):
         self.item_time_array = self.time_dict_to_array(self.time_dict, time_len)
         if self.item_time_array.shape[0] < self.m_item:
             # items past the max ever-interacted id (e.g. never sampled at high
-            # alpha) are dropped by time_dict_to_array's range(); pad them back
+            # rho) are dropped by time_dict_to_array's range(); pad them back
             # in as "no history" rows so every downstream index < m_item is valid.
             pad_n = self.m_item - self.item_time_array.shape[0]
             fill = float(self.item_time_array.max()) if self.item_time_array.size else 0.0
@@ -393,45 +403,112 @@ def compute_ranking_recovery(model, dataset, true_utility):
 
 
 # ----------------------------------------------------------------------
+# one independent (rho, seed, approach) run -- top-level so it is picklable
+# for multiprocessing
+# ----------------------------------------------------------------------
+def run_single(task):
+    rho, seed, approach = task
+    torch.set_num_threads(1)
+
+    data_rng = np.random.default_rng(hash((seed, rho)) % (2 ** 32))
+    events, true_utility = generate_events(rho, data_rng)
+    train_events, valid_events, test_events = split_events(events)
+    dataset = SyntheticUserItemTime(
+        events, train_events, valid_events, test_events, N_USER, N_ITEM, TIME_LEN, MAX_SEQ_LEN)
+
+    train_fn = train_vanilla if approach == "vanilla" else train_ours
+    model = train_fn(dataset, seed)
+
+    metric_rng = np.random.default_rng(hash((seed, rho, approach)) % (2 ** 32))
+    luni_val = compute_uniformity(model, metric_rng)
+    recall10, ndcg10 = compute_ranking_recovery(model, dataset, true_utility)
+
+    return dict(rho=rho, seed=seed, approach=approach,
+                l_uni=luni_val, recall_10=recall10, ndcg_10=ndcg10)
+
+
+# ----------------------------------------------------------------------
+# statistical significance: (a) paired Vanilla-vs-Ours comparison at each rho
+# (paired by seed -- both approaches are trained on the IDENTICAL synthetic
+# dataset for a given (rho, seed)), and (b) a trend test of whether each
+# approach's metric actually moves with rho, pooled across all seeds.
+# ----------------------------------------------------------------------
+def run_significance_tests(results):
+    by_key = {(r["rho"], r["seed"], r["approach"]): r for r in results}
+
+    lines = [f"Paired comparison (Ours vs Vanilla), paired by seed within each rho (n={len(SEEDS)} seeds/rho)"]
+    for metric, label in [("l_uni", "L_uni"), ("recall_10", "Recall@10 (ground-truth ranking recovery)")]:
+        lines.append(f"\n--- {label} ---")
+        for rho in RHO_GRID:
+            van = np.array([by_key[(rho, s, "vanilla")][metric] for s in SEEDS])
+            ours = np.array([by_key[(rho, s, "ours")][metric] for s in SEEDS])
+            diff = ours - van
+            t_stat, t_p = stats.ttest_rel(ours, van)
+            try:
+                w_stat, w_p = stats.wilcoxon(ours, van)
+            except ValueError:
+                w_stat, w_p = float("nan"), float("nan")
+            lines.append(
+                f"  rho={rho:>4}: Vanilla={van.mean():+.4f}(sd={van.std():.4f})  "
+                f"Ours={ours.mean():+.4f}(sd={ours.std():.4f})  "
+                f"diff(Ours-Vanilla)={diff.mean():+.4f}  "
+                f"paired-t p={t_p:.2e}  wilcoxon p={w_p:.2e}")
+
+    lines.append("\nTrend test: correlation of each approach's metric with rho, pooled across all seeds")
+    for metric, label in [("l_uni", "L_uni"), ("recall_10", "Recall@10 (ground-truth ranking recovery)")]:
+        lines.append(f"\n--- {label} ---")
+        for approach in ["vanilla", "ours"]:
+            rhos = np.array([r["rho"] for r in results if r["approach"] == approach])
+            vals = np.array([r[metric] for r in results if r["approach"] == approach])
+            rho_corr, rho_p = stats.spearmanr(rhos, vals)
+            lines.append(f"  {approach:>7s}: Spearman rho={rho_corr:+.4f}  p={rho_p:.2e}")
+
+    report = "\n".join(lines)
+    print("\n########## statistical significance ##########")
+    print(report)
+
+    txt_path = "./analysis_representation/synthetic_rho_significance.txt"
+    with open(txt_path, "w") as f:
+        f.write(report + "\n")
+    print(f"\n[saved] {txt_path}")
+
+
+# ----------------------------------------------------------------------
 # main sweep
 # ----------------------------------------------------------------------
 def main():
     os.makedirs("./figures", exist_ok=True)
     os.makedirs("./analysis_representation", exist_ok=True)
 
+    tasks = [(rho, seed, approach)
+             for rho in RHO_GRID for seed in SEEDS for approach in ["vanilla", "ours"]]
+    print(f"[sweep] {len(tasks)} runs ({len(RHO_GRID)} rho x {len(SEEDS)} seeds x 2 approaches), "
+          f"{N_WORKERS} parallel workers")
+
     results = []
-    for alpha in ALPHA_GRID:
-        for seed in SEEDS:
-            print(f"\n=== alpha={alpha} seed={seed} ===")
-            data_rng = np.random.default_rng(hash((seed, alpha)) % (2 ** 32))
-            events, true_utility = generate_events(alpha, data_rng)
-            train_events, valid_events, test_events = split_events(events)
-            dataset = SyntheticUserItemTime(
-                events, train_events, valid_events, test_events, N_USER, N_ITEM, TIME_LEN, MAX_SEQ_LEN)
-            print(f"[data] {len(events)} events | train={len(train_events)} "
-                  f"valid={len(valid_events)} test={len(test_events)}")
+    with mp.Pool(processes=N_WORKERS) as pool:
+        for i, res in enumerate(pool.imap_unordered(run_single, tasks), 1):
+            results.append(res)
+            if i % 20 == 0 or i == len(tasks):
+                print(f"[progress] {i}/{len(tasks)} runs done -- last: "
+                      f"rho={res['rho']} seed={res['seed']} {res['approach']:>7s}: "
+                      f"L_uni={res['l_uni']:.4f} Recall@10={res['recall_10']:.4f}")
 
-            for approach, train_fn in [("vanilla", train_vanilla), ("ours", train_ours)]:
-                model = train_fn(dataset, seed)
-                metric_rng = np.random.default_rng(hash((seed, alpha, approach)) % (2 ** 32))
-                luni_val = compute_uniformity(model, metric_rng)
-                recall10, ndcg10 = compute_ranking_recovery(model, dataset, true_utility)
-                print(f"  [{approach:>7s}] L_uni={luni_val:.4f}  "
-                      f"Recall@10(gt-recovery)={recall10:.4f}  NDCG@10={ndcg10:.4f}")
-                results.append(dict(alpha=alpha, seed=seed, approach=approach,
-                                     l_uni=luni_val, recall_10=recall10, ndcg_10=ndcg10))
+    results.sort(key=lambda r: (r["rho"], r["seed"], r["approach"]))
 
-    csv_path = "./analysis_representation/synthetic_alpha_sweep.csv"
+    csv_path = "./analysis_representation/synthetic_rho_sweep.csv"
     with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["alpha", "seed", "approach", "l_uni", "recall_10", "ndcg_10"])
+        writer = csv.DictWriter(f, fieldnames=["rho", "seed", "approach", "l_uni", "recall_10", "ndcg_10"])
         writer.writeheader()
         writer.writerows(results)
     print(f"\n[saved] {csv_path}")
 
+    run_significance_tests(results)
+
     def agg(approach, key):
         means, stds = [], []
-        for alpha in ALPHA_GRID:
-            vals = [r[key] for r in results if r["approach"] == approach and r["alpha"] == alpha]
+        for rho in RHO_GRID:
+            vals = [r[key] for r in results if r["approach"] == approach and r["rho"] == rho]
             means.append(np.mean(vals))
             stds.append(np.std(vals))
         return np.array(means), np.array(stds)
@@ -442,26 +519,29 @@ def main():
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
     for approach in ["vanilla", "ours"]:
         m, s = agg(approach, "l_uni")
-        axes[0].errorbar(ALPHA_GRID, m, yerr=s, marker="o", capsize=3,
+        se = s / np.sqrt(len(SEEDS))
+        axes[0].errorbar(RHO_GRID, m, yerr=se, marker="o", capsize=3,
                           label=labels[approach], color=colors[approach])
-    axes[0].set_xlabel(r"popularity strength $\alpha$")
+    axes[0].set_xlabel(r"popularity strength $\rho$")
     axes[0].set_ylabel(r"uniformity loss $\mathcal{L}_{\mathrm{uni}}$")
     axes[0].set_title("Representation uniformity")
     axes[0].legend()
 
     for approach in ["vanilla", "ours"]:
         m, s = agg(approach, "recall_10")
-        axes[1].errorbar(ALPHA_GRID, m, yerr=s, marker="o", capsize=3,
+        se = s / np.sqrt(len(SEEDS))
+        axes[1].errorbar(RHO_GRID, m, yerr=se, marker="o", capsize=3,
                           label=labels[approach], color=colors[approach])
-    axes[1].set_xlabel(r"popularity strength $\alpha$")
+    axes[1].set_xlabel(r"popularity strength $\rho$")
     axes[1].set_ylabel("Recall@10 (ground-truth ranking recovery)")
     axes[1].set_title("Preference-ranking recovery")
     axes[1].legend()
 
-    fig.suptitle(r"Semi-synthetic sweep of popularity-confounding strength $\alpha$"
-                 "\n" r"($\alpha{=}0$: no popularity confound, $\alpha{=}1$: paper's own formulation)", y=1.08)
+    fig.suptitle(r"Semi-synthetic sweep of popularity-confounding strength $\rho$"
+                 "\n" r"($\rho{=}0$: no popularity confound, $\rho{=}1$: paper's own formulation); "
+                 f"error bars = SEM over {len(SEEDS)} seeds", y=1.1)
     fig.tight_layout()
-    out_path = "./figures/synthetic_alpha_sweep.png"
+    out_path = "./figures/synthetic_rho_sweep.png"
     fig.savefig(out_path, dpi=170, bbox_inches="tight")
     fig.savefig(out_path.replace(".png", ".pdf"), bbox_inches="tight")
     plt.close(fig)

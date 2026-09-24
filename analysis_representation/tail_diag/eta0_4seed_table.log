@@ -1,0 +1,102 @@
+[load_dataset] built in 8.2s (item_time_array rescaled to days)
+tail_recent_3d: N=12935
+
+mf         seed=1 backbone=0.0101 ours@default(eta=0.3)=0.0223 ours@eta0=0.0492 (23.2s)
+mf         seed=2 backbone=0.0111 ours@default(eta=0.3)=0.0201 ours@eta0=0.0503 (22.5s)
+mf         seed=3 backbone=0.0097 ours@default(eta=0.3)=0.0199 ours@eta0=0.0509 (24.2s)
+mf         seed=4 backbone=0.0093 ours@default(eta=0.3)=0.0213 ours@eta0=0.0513 (23.1s)
+grurec     seed=1 backbone=0.0101 ours@default(eta=0.5)=0.0016 ours@eta0=0.0195 (27.1s)
+grurec     seed=2 backbone=0.0111 ours@default(eta=0.5)=0.0015 ours@eta0=0.0203 (26.7s)
+grurec     seed=3 backbone=0.0104 ours@default(eta=0.5)=0.0023 ours@eta0=0.0209 (27.5s)
+grurec     seed=4 backbone=0.0084 ours@default(eta=0.5)=0.0015 ours@eta0=0.0196 (27.3s)
+sasrec     seed=1 backbone=0.0271 ours@default(eta=0.5)=0.0035 ours@eta0=0.0335 (39.6s)
+sasrec     seed=2 backbone=0.0282 ours@default(eta=0.5)=0.0035 ours@eta0=0.0325 (39.7s)
+sasrec     seed=3 backbone=0.0247 ours@default(eta=0.5)=0.0036 ours@eta0=0.0296 (39.9s)
+sasrec     seed=4 backbone=0.0271 ours@default(eta=0.5)=0.0036 ours@eta0=0.0313 (39.8s)
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+fearec     seed=1 backbone=0.0053 ours@default(eta=0.5)=0.0010 ours@eta0=0.0080 (46.7s)
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+fearec     seed=2 backbone=0.0054 ours@default(eta=0.5)=0.0013 ours@eta0=0.0083 (46.4s)
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+fearec     seed=3 backbone=0.0056 ours@default(eta=0.5)=0.0004 ours@eta0=0.0080 (48.0s)
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+0.6>0.5:True
+modes_q=16, index_q=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_k=16, index_k=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+modes_v=16, index_v=[10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+0.6>0.5:True
+modes_q=16, index_q=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_k=16, index_k=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+modes_v=16, index_v=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+fearec     seed=4 backbone=0.0053 ours@default(eta=0.5)=0.0005 ours@eta0=0.0087 (47.8s)
+bsarec     seed=1 backbone=0.0000 ours@default(eta=0.5)=0.0016 ours@eta0=0.0226 (30.0s)
+bsarec     seed=2 backbone=0.0000 ours@default(eta=0.5)=0.0023 ours@eta0=0.0210 (30.0s)
+bsarec     seed=3 backbone=0.0000 ours@default(eta=0.5)=0.0023 ours@eta0=0.0213 (29.8s)
+bsarec     seed=4 backbone=0.0000 ours@default(eta=0.5)=0.0019 ours@eta0=0.0216 (29.8s)
+tisasrec   seed=1 backbone=0.0293 ours@default(eta=0.5)=0.0039 ours@eta0=0.0272 (55.2s)
+tisasrec   seed=2 backbone=0.0261 ours@default(eta=0.5)=0.0039 ours@eta0=0.0317 (55.3s)
+tisasrec   seed=3 backbone=0.0275 ours@default(eta=0.5)=0.0034 ours@eta0=0.0288 (55.8s)
+tisasrec   seed=4 backbone=0.0278 ours@default(eta=0.5)=0.0030 ours@eta0=0.0283 (57.4s)
+
+=== Final table (mean +/- std over seeds 1-4) ===
+Backbone      Backbone R@10     Ours@default        Ours@eta0
+mf         0.0100+/-0.0007   0.0209+/-0.0009   0.0504+/-0.0008
+grurec     0.0100+/-0.0010   0.0018+/-0.0003   0.0201+/-0.0006
+sasrec     0.0268+/-0.0013   0.0036+/-0.0001   0.0317+/-0.0014
+fearec     0.0054+/-0.0001   0.0008+/-0.0004   0.0082+/-0.0003
+bsarec     0.0000+/-0.0000   0.0020+/-0.0003   0.0216+/-0.0006
+tisasrec   0.0277+/-0.0012   0.0035+/-0.0004   0.0290+/-0.0017
+
+saved /Users/wonhyung64/Github/ldr_rec_anova/analysis_representation/tail_diag/eta0_4seed_table.json

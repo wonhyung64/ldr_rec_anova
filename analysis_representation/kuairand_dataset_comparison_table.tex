@@ -1,0 +1,38 @@
+\begin{table}[t]
+\centering
+\caption{\textbf{Why the Hawkes popularity prior runs away on KuaiRand but not
+Micro-Video or MovieLens} (identical SASRec+Ours architecture/framework, fit
+independently on each dataset). Two natural hypotheses -- denser per-item interactions,
+or more skewed raw popularity -- are each contradicted by at least one other dataset
+(bold). What tracks the outcome instead is a short absolute time span combined with high
+local density concentrated in a few items, which forces a very fast shared decay rate
+$\beta$ and, combined with a fixed 50-event-per-item history cap, leaves the excitation
+channel unusable for the vast majority of a popular item's own history.}
+\label{tab:kuairand_dataset_comparison}
+\begin{tabular}{l ccc}
+\toprule
+ & KuaiRand & Micro-Video & MovieLens \\
+\midrule
+catalog size ($|\mathcal{V}|$) & 7{,}076 & 44{,}503 & 3{,}533 \\
+mean interactions / item & 70.1 & 4.3 & $\mathbf{132.7}$ \\
+raw count max/median ratio & 323 & $\mathbf{404}$ & 60 \\
+\midrule
+dataset time span (days) & $\mathbf{29.5}$ & 27.8 & 1{,}038.8 \\
+top item's raw count & 5{,}704 & 404 & 2{,}508 \\
+$\Rightarrow$ top item's interactions/day & $\mathbf{\sim}193$ & $\sim$15 & $\sim$2.5 \\
+median same-item re-interaction gap & $\mathbf{0.35}$h & 1.99h & 6.78h \\
+learned $\beta$ (decay/day) & $\mathbf{18.04}$ & 6.22 & 0.107 \\
+$\Rightarrow$ excitation half-life & $\mathbf{0.92}$h & 2.67h & 6.48\emph{d} \\
+usable excitation window for top item\tnote{*} & $\mathbf{1.1}$d & 0.4d & 684.7d \\
+\midrule
+learned $\mu$ max/median ratio & $\mathbf{5.2\times10^6}$ & 1{,}727 & 2{,}673 \\
+top-10 items' share of total $\mu$ mass & $\mathbf{87.3\%}$ & 7.1\% & 28.3\% \\
+Tail Recall@10, backbone $\to$ Ours ($\eta{=}0.5$) & $\mathbf{0.0268\to0.0036}$ & $0.0112\to0.1449$ & $0.0365\to0.0451$ \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item[*] Days spanned by the last 50 raw event timestamps retained per item
+(`time\_dict\_to\_array`, `time\_len=50`), for the item with the single largest learned
+$\mu_v$ in each dataset.
+\end{tablenotes}
+\end{table}

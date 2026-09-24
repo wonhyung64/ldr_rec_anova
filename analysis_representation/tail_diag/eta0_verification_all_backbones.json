@@ -1,0 +1,50 @@
+{
+  "grurec": {
+    "backbone_r10": 0.010127560881329725,
+    "eta_default": 0.5,
+    "r10_at_default_eta": 0.001623502126014689,
+    "r10_at_eta0": 0.019482025512176267,
+    "beats_backbone_at_eta0": true,
+    "beats_backbone_at_default_eta": false
+  },
+  "fearec": {
+    "backbone_r10": 0.005257054503285659,
+    "eta_default": 0.5,
+    "r10_at_default_eta": 0.0010050251256281408,
+    "r10_at_eta0": 0.007962891379976807,
+    "beats_backbone_at_eta0": true,
+    "beats_backbone_at_default_eta": false
+  },
+  "bsarec": {
+    "backbone_r10": 0.0,
+    "eta_default": 0.5,
+    "r10_at_default_eta": 0.001623502126014689,
+    "r10_at_eta0": 0.022574410514109005,
+    "beats_backbone_at_eta0": true,
+    "beats_backbone_at_default_eta": true
+  },
+  "mf": {
+    "backbone_r10": 0.010050251256281407,
+    "eta_default": 0.3,
+    "r10_at_default_eta": 0.022265172013915733,
+    "r10_at_eta0": 0.04924623115577889,
+    "beats_backbone_at_eta0": true,
+    "beats_backbone_at_default_eta": true
+  },
+  "tisasrec": {
+    "backbone_r10": 0.029300347893312716,
+    "eta_default": 0.5,
+    "r10_at_default_eta": 0.003865481252415926,
+    "r10_at_eta0": 0.027212988017008118,
+    "beats_backbone_at_eta0": false,
+    "beats_backbone_at_default_eta": false
+  },
+  "sasrec": {
+    "backbone_r10": 0.02705836876691148,
+    "eta_default": 0.5,
+    "r10_at_default_eta": 0.003478933127174333,
+    "r10_at_eta0": 0.03347506764592192,
+    "beats_backbone_at_eta0": true,
+    "beats_backbone_at_default_eta": false
+  }
+}

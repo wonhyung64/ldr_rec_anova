@@ -28,7 +28,7 @@ DATASET_ORDER = ["micro_video", "ml-1m", "kuairand"]
 DATASET_LABELS = {"micro_video": "Micro Video", "ml-1m": "MovieLens", "kuairand": "KuaiRand"}
 MODEL_ORDER = ["mf", "grurec", "sasrec", "tisasrec", "fearec", "bsarec"]
 MODEL_LABELS = {
-    "mf": "MF", "grurec": "GRU4Rec", "sasrec": "SASRec",
+    "mf": "MF", "grurec": "GRU", "sasrec": "SASRec",
     "tisasrec": "TiSASRec", "fearec": "FEARec", "bsarec": "BSARec",
 }
 # muted, colorblind-safe palette in the spirit of recent ICLR camera-readies

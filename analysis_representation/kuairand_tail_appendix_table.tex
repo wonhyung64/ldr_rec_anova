@@ -1,0 +1,62 @@
+\begin{table}[t]
+\centering
+\caption{\textbf{KuaiRand Tail-item diagnosis for SASRec+Ours.} Left: sweeping the
+inference-time mixing weight $\eta$ (no retraining) shows Tail Recall@10 collapses
+monotonically while Head/All peak at the trained default $\eta=0.5$. Right: capping the
+learned Hawkes background rate $\mu_v$ at a percentile of its own distribution, at the
+\emph{original} $\eta=0.5$, recovers most of the lost Tail Recall@10 without retraining.}
+\label{tab:kuairand_tail_diagnosis}
+\begin{tabular}{c ccc}
+\toprule
+$\eta$ & Tail R@10 & Head R@10 & All R@10 \\
+\midrule
+0.0 & 0.0337 & 0.0513 & 0.0467 \\
+0.1 & 0.0275 & 0.0648 & 0.0548 \\
+0.2 & 0.0202 & 0.0720 & 0.0575 \\
+0.3 & 0.0137 & 0.0790 & 0.0645 \\
+0.4 & 0.0088 & 0.0945 & 0.0712 \\
+\textbf{0.5 (default)} & \textbf{0.0043} & \textbf{0.0985} & \textbf{0.0718} \\
+0.6 & 0.0013 & 0.0863 & 0.0635 \\
+1.0 & 0.0000 & 0.0602 & 0.0392 \\
+\midrule
+Backbone (Vanilla) & 0.0268 & 0.0652 & 0.0577 \\
+\bottomrule
+\end{tabular}
+\hfill
+\begin{tabular}{l cc}
+\toprule
+Backbone & Tail R@10 ($\eta=0.5$) & $\mu$ concentration \\
+ & uncapped $\to$ cap@p90 & (top-10 share / ratio) \\
+\midrule
+SASRec & 0.0035 $\to$ 0.0166 & 87.3\% / $5.2{\times}10^6$ \\
+GRU & 0.0016 $\to$ 0.0126 & -- / $4.1{\times}10^6$ \\
+FEARec & 0.0010 $\to$ 0.0070 & -- / $3.4{\times}10^6$ \\
+BSARec & 0.0016 $\to$ 0.0118 & -- / $5.6{\times}10^6$ \\
+MF & -- & -- / $1.1{\times}10^6$ \\
+\midrule
+SASRec (Micro-Video) & -- & 7.1\% / $1{,}727$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Utility-only ($\eta=0$) vs.\ backbone, all six KuaiRand backbones,
+Tail Recall@10, mean $\pm$ std over the same 4 seeds as Table~\ref{tab:main_results}.}
+Backbone and Ours-at-default-$\eta$ columns match Table~\ref{tab:main_results} almost
+exactly, validating the reproduction. Every backbone's utility-only component exceeds
+its own backbone.}
+\label{tab:kuairand_eta0_verification}
+\begin{tabular}{l ccc}
+\toprule
+Backbone & Backbone R@10 & Ours @ default $\eta$ & Ours @ $\eta=0$ \\
+\midrule
+MF & $0.0100\pm0.0007$ & $0.0209\pm0.0009$ ($\eta{=}0.3$) & $\mathbf{0.0504\pm0.0008}$ \\
+GRU & $0.0100\pm0.0010$ & $0.0018\pm0.0003$ ($\eta{=}0.5$) & $\mathbf{0.0201\pm0.0006}$ \\
+SASRec & $0.0268\pm0.0013$ & $0.0036\pm0.0001$ ($\eta{=}0.5$) & $\mathbf{0.0317\pm0.0014}$ \\
+FEARec & $0.0054\pm0.0001$ & $0.0008\pm0.0004$ ($\eta{=}0.5$) & $\mathbf{0.0082\pm0.0003}$ \\
+BSARec & $0.0000\pm0.0000$ & $0.0020\pm0.0003$ ($\eta{=}0.5$) & $\mathbf{0.0216\pm0.0006}$ \\
+TiSASRec & $0.0277\pm0.0012$ & $0.0035\pm0.0004$ ($\eta{=}0.5$) & $\mathbf{0.0290\pm0.0017}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

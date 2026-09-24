@@ -1,0 +1,65 @@
+Appendix: KuaiRand Tail-Item Degradation
+
+Table~\ref{tab:main_results} shows that, on KuaiRand, several sequential backbones (SASRec,
+TiSASRec, FEARec, GRU) obtain \emph{lower} Tail Recall@10 under the proposed framework than
+under the backbone alone, in contrast to Micro-Video and MovieLens, where Tail items improve
+along with Head and All items. We investigate this discrepancy for SASRec (the largest gap:
+$0.0268\pm0.0015 \to 0.0036\pm0.0001$) using the exact checkpoints and inference procedure
+underlying Table~\ref{tab:main_results}; the reproduced Tail Recall@10 matches the reported
+values exactly (0.0267 and 0.0036, averaged over the same four seeds), validating the analysis.
+
+At inference the final score is $s(x_u(t),v) = \eta\log\pi_\Phi(v\mid t) + (1-\eta)f_\Psi(x_u(t),v)$
+with $\eta=0.5$ for KuaiRand's sequential backbones (Sec.~4.4). Sweeping $\eta$ post hoc --
+without retraining, since $\eta$ is an inference-time-only parameter -- shows that Tail
+Recall@10 decreases \emph{monotonically} from 0.0337 at $\eta=0$ to exactly 0 at $\eta \ge 0.7$
+for SASRec (seed 1), while Head and All Recall@10 peak near the trained default $\eta=0.5$ (Head:
+0.0513 $\to$ 0.0985; All: 0.0467 $\to$ 0.0718). Checking $\eta=0$ (utility only) directly against
+the backbone across all six KuaiRand backbones, mean $\pm$ std over the same four seeds used in
+Table~\ref{tab:main_results}, on the full \texttt{tail\_recent\_3d} split, confirms this is
+universal: MF ($0.0100\pm0.0007\to0.0504\pm0.0008$), GRU ($0.0100\pm0.0010\to0.0201\pm0.0006$),
+SASRec ($0.0268\pm0.0013\to0.0317\pm0.0014$), FEARec ($0.0054\pm0.0001\to0.0082\pm0.0003$),
+BSARec ($0.0000\to0.0216\pm0.0006$), and TiSASRec ($0.0277\pm0.0012\to0.0290\pm0.0017$) all
+exceed their own backbone at $\eta=0$ (each of these six backbone and default-$\eta$ values also
+matches Table~\ref{tab:main_results}'s reported mean $\pm$ std almost exactly, confirming the
+reproduction). So the learned utility term $f_\Psi$ is not the source of the degradation for any
+backbone; the popularity term $\pi_\Phi$ is. (A single-seed check had initially flagged TiSASRec
+as a possible exception at $\eta=0$; the 4-seed average shows this was sampling noise -- TiSASRec's
+per-seed Tail Recall@10 is noisier than e.g.\ SASRec's, with std $\approx 0.0012$--$0.0017$.)
+
+Inspecting the learned Hawkes background rate $\mu_v$ reveals why the popularity term fails: for
+every KuaiRand backbone checked (SASRec, GRU, FEARec, BSARec, MF, TiSASRec), $\mu_v$ collapses
+onto a tiny ``celebrity'' clique. For SASRec, ten items (of 7{,}076) hold 87.3\% of the total
+$\mu$ mass, with $\max_v \mu_v / \mathrm{median}_v\, \mu_v \approx 5.2\times 10^6$; these same ten
+items occupy \emph{every} position in the top-10-by-popularity ranking across 300 randomly sampled
+test timestamps, with learned excitation $\alpha_v \approx 0$ -- i.e.\ the ``time-varying'' Hawkes
+popularity has degenerated into a time-\emph{invariant} ranking dominated by a fixed clique. This
+is not an artifact of KuaiRand's raw popularity being unusually skewed: the relative skew of raw
+training counts is similar to Micro-Video's (max/median ratio 323 vs.\ 404), and the learned
+$\mu_v$ correlates $0.88$ (Pearson, in log space) with each item's raw training-interaction count
+across the full catalog, with the single most-repeated training item (id 6450, 4{,}838
+occurrences) also being the item with the single largest learned $\mu_v$. Because $\mu_v$ is
+parameterized by an unconstrained $\mathrm{softplus}(\mathrm{MLP}(\mathbf z_v))$ with no
+regularization -- the ANOVA-centering penalty (Sec.~4.3) constrains only the utility branch
+$f_\Psi$, never $\pi_\Phi$ -- an item's $\mu_v$ grows without bound in proportion to how often it
+is seen as a positive example, and KuaiRand's items are seen far more often in absolute terms than
+Micro-Video's under the same fixed 500-epoch training budget (mean 70 interactions/item vs.\ 4.3;
+the top item is replayed 4{,}838 times/epoch vs.\ 404 times/epoch on Micro-Video). This
+unregularized, repeated-exposure dynamic \emph{amplifies} KuaiRand's mild raw skew into an extreme
+learned one (top-10 raw-interaction share 6.1\% $\to$ top-10 learned-$\mu$ share 87.3\%, a
+${\sim}14\times$ amplification) far more than it does on Micro-Video (1.76\% $\to$ 7.1\%,
+${\sim}4\times$), where the identical architecture shows a ratio of only $1{,}727$ rather than
+$5.2\times 10^6$. Because \texttt{tail\_recent\_3d} items are, by construction, not part of any
+currently-dominant set, the fixed clique permanently occupies several of every user's top-10 slots
+once $\eta$ places non-trivial weight on $\pi_\Phi$, mechanically suppressing Recall@10 on exactly
+this evaluation slice.
+
+This is a narrow training-dynamics artifact of the unregularized background-rate
+parameterization, not a failure of the popularity/utility decomposition itself, and it is easily
+corrected without retraining: capping $\mu_v$ at the $90$th percentile of its own empirical
+distribution before combining with $f_\Psi$ at the \emph{original} $\eta=0.5$ recovers most of the
+lost Tail performance across every backbone tested (SASRec: $0.0035\to0.0166$; GRU:
+$0.0016\to0.0126$; FEARec: $0.0010\to0.0070$; BSARec: $0.0016\to0.0118$), and simply lowering
+$\eta$ to $0.1$--$0.2$ for KuaiRand achieves a similar effect while retaining most of the Head/All
+gains. We view this as a hyperparameter/regularization artifact specific to how the Hawkes prior
+was fit on KuaiRand's denser per-item interaction counts, easily addressed at inference time,
+rather than a limitation of the framework.

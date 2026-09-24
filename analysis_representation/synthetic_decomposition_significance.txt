@@ -1,0 +1,26 @@
+Paired comparisons across variants, paired by seed (n=30 seeds)
+
+--- Popularity KL ---
+  no_centering vs ours        : no_centering=8.3198e-01(sd=4.4054e-02)  ours=8.2761e-01(sd=3.6990e-02)  diff=+4.3618e-03  paired-t p=6.90e-01  wilcoxon p=5.70e-01
+          ours vs oracle_pi0  : ours=8.2761e-01(sd=3.6990e-02)  oracle_pi0=0.0000e+00(sd=0.0000e+00)  diff=+8.2761e-01  paired-t p=1.03e-40  wilcoxon p=1.86e-09
+  no_centering vs oracle_pi0  : no_centering=8.3198e-01(sd=4.4054e-02)  oracle_pi0=0.0000e+00(sd=0.0000e+00)  diff=+8.3198e-01  paired-t p=1.39e-38  wilcoxon p=1.86e-09
+
+--- Ranking-equivalent Utility MSE (primary) ---
+  no_centering vs ours        : no_centering=9.8955e+00(sd=9.3598e-01)  ours=1.0867e+01(sd=8.5131e-01)  diff=-9.7159e-01  paired-t p=5.02e-04  wilcoxon p=6.08e-04
+          ours vs oracle_pi0  : ours=1.0867e+01(sd=8.5131e-01)  oracle_pi0=1.1088e+01(sd=7.0671e-01)  diff=-2.2071e-01  paired-t p=3.64e-01  wilcoxon p=4.28e-01
+  no_centering vs oracle_pi0  : no_centering=9.8955e+00(sd=9.3598e-01)  oracle_pi0=1.1088e+01(sd=7.0671e-01)  diff=-1.1923e+00  paired-t p=8.08e-06  wilcoxon p=1.40e-05
+
+--- Utility correlation f_c vs f*_c (diagnostic) ---
+  no_centering vs ours        : no_centering=8.5585e-01(sd=3.4352e-03)  ours=8.1432e-01(sd=4.8984e-03)  diff=+4.1534e-02  paired-t p=6.35e-27  wilcoxon p=1.86e-09
+          ours vs oracle_pi0  : ours=8.1432e-01(sd=4.8984e-03)  oracle_pi0=7.8806e-01(sd=1.2112e-02)  diff=+2.6256e-02  paired-t p=2.42e-13  wilcoxon p=1.86e-09
+  no_centering vs oracle_pi0  : no_centering=8.5585e-01(sd=3.4352e-03)  oracle_pi0=7.8806e-01(sd=1.2112e-02)  diff=+6.7790e-02  paired-t p=3.69e-24  wilcoxon p=1.86e-09
+
+--- Held-out Choice NLL (diagnostic) ---
+  no_centering vs ours        : no_centering=5.5360e+00(sd=6.6949e-02)  ours=5.6078e+00(sd=5.9358e-02)  diff=-7.1791e-02  paired-t p=2.51e-04  wilcoxon p=1.11e-04
+          ours vs oracle_pi0  : ours=5.6078e+00(sd=5.9358e-02)  oracle_pi0=5.0924e+00(sd=1.1817e-01)  diff=+5.1540e-01  paired-t p=6.44e-21  wilcoxon p=1.86e-09
+  no_centering vs oracle_pi0  : no_centering=5.5360e+00(sd=6.6949e-02)  oracle_pi0=5.0924e+00(sd=1.1817e-01)  diff=+4.4361e-01  paired-t p=2.06e-16  wilcoxon p=1.86e-09
+
+--- Centering residual = R_cen(f_hat) (diagnostic; 'ours' directly minimizes this during training) ---
+  no_centering vs ours        : no_centering=1.0412e-03(sd=3.1137e-04)  ours=1.1437e-04(sd=4.2544e-05)  diff=+9.2681e-04  paired-t p=1.30e-15  wilcoxon p=1.86e-09
+          ours vs oracle_pi0  : ours=1.1437e-04(sd=4.2544e-05)  oracle_pi0=8.2516e-01(sd=1.3287e-01)  diff=-8.2505e-01  paired-t p=1.03e-24  wilcoxon p=1.86e-09
+  no_centering vs oracle_pi0  : no_centering=1.0412e-03(sd=3.1137e-04)  oracle_pi0=8.2516e-01(sd=1.3287e-01)  diff=-8.2412e-01  paired-t p=1.08e-24  wilcoxon p=1.86e-09
