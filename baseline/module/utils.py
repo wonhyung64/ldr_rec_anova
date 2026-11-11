@@ -58,6 +58,13 @@ def parse_args():
                          help='two-timescale Hawkes: long-component half-life, in the timestamp units used by the dataset (days)')
     parser.add_argument('--half-life-grid', type=str, default='0.1,0.5,2,10,50,200',
                          help='multiscale Hawkes: comma-separated list of K fixed excitation half-lives (days), e.g. "0.02,0.05,0.15,0.4,1.0,3.0"')
+    # sampled-softmax loss-control baselines (cf_ss.py / seq_rec_ss.py / seq_rec_tisasrec_ss.py)
+    parser.add_argument('--ss-correction', type=int, default=1, choices=[0, 1],
+                         help='1: add log((|V|-1)/M) importance correction to negative logits (same as l_choice); 0: plain sampled softmax')
+    parser.add_argument('--item-init-std', type=float, default=0.02,
+                         help='std of N(0, std) init for item_embedding (0.02 = same init as the Hawkes/ANOVA models; <=0 keeps nn.Embedding default)')
+    parser.add_argument('--result-dir', type=str, default='./results/sampled_softmax',
+                         help='where the per-run metric json is written')
 
 
 
