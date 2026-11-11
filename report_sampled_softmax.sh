@@ -95,16 +95,16 @@ declare -A SCRIPT_FOR=(
 )
 
 experiments=()
-for dataset in "${DATASETS[@]}"; do
-    for model in "${BACKBONES[@]}"; do
-        script="${SCRIPT_FOR[$model]}"
+for seed in "${SEEDS[@]}"; do
+    for dataset in "${DATASETS[@]}"; do
+        for model in "${BACKBONES[@]}"; do
+            script="${SCRIPT_FOR[$model]}"
 
-        extra_args=""
-        if [ "$model" == "bsarec" ]; then
-            extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=${BSAREC_C}"
-        fi
+            extra_args=""
+            if [ "$model" == "bsarec" ]; then
+                extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=${BSAREC_C}"
+            fi
 
-        for seed in "${SEEDS[@]}"; do
             experiments+=("${script} --model-name=${model} --dataset=${dataset} --seed=${seed} --recdim=128 --dropout=0.2 --lr=0.001 --contrast-size=16 --max-seq-len=50 --tau=${TAU} --score-norm=${SCORE_NORM} --ss-correction=${SS_CORRECTION} ${extra_args} --weights_path=${WEIGHTS_PATH} --result-dir=${RESULT_DIR} --evaluate-interval=250 --epochs=500")
         done
     done
