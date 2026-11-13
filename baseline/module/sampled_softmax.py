@@ -82,7 +82,8 @@ def sampled_softmax_loss(model, candidate_items, hist_items, additional_feat,
 # checkpointing
 # --------------------------------------------------------------------------- #
 def ckpt_pattern(args, epoch="???"):
-    return (f"_{args.model_name}_ss_tau{args.tau}_scorenorm{args.score_norm}"
+    tag = getattr(args, "loss_tag", "ss")
+    return (f"_{args.model_name}_{tag}_tau{args.tau}_scorenorm{args.score_norm}"
             f"_corr{args.ss_correction}_e{epoch}_seed{args.seed}.pt")
 
 
@@ -206,7 +207,7 @@ def dump_result_json(args, epoch, metrics, valid_metrics=None):
         "model": args.model_name,
         "seed": args.seed,
         "epoch": epoch,
-        "loss": "sampled_softmax",
+        "loss": {"ss": "sampled_softmax"}.get(getattr(args, "loss_tag", "ss"), getattr(args, "loss_tag", "ss")),
         "num_negatives": args.contrast_size - 1,
         "ss_correction": args.ss_correction,
         "tau": args.tau,
