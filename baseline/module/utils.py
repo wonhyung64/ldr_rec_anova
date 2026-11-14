@@ -65,6 +65,17 @@ def parse_args():
                          help='std of N(0, std) init for item_embedding (0.02 = same init as the Hawkes/ANOVA models; <=0 keeps nn.Embedding default)')
     parser.add_argument('--result-dir', type=str, default='./results/sampled_softmax',
                          help='where the per-run metric json is written')
+    # separately-estimated Hawkes popularity + plug-in utility learning (*_hawkes_anova_plugin.py)
+    parser.add_argument('--plugin-path', type=str, default='./weights_plugin',
+                         help='root of the checkpoints holding the pre-fitted (frozen) Hawkes parameters: {root}/{dataset}/{plugin-model}_seed{seed}.pt')
+    parser.add_argument('--plugin-model', type=str, default='tisasrec',
+                         help='which backbone\'s checkpoint supplies the Hawkes parameters (same --seed is used)')
+    parser.add_argument('--plugin-beta-scale', type=float, default=-1.0,
+                         help='multiply the checkpoint\'s decay rate beta by this factor (time-unit conversion). <0: auto (1000 for kuairand, 1 otherwise)')
+    parser.add_argument('--plugin-eta-grid', type=str, default='0.0,0.1,0.3,0.5,0.7,0.9,1.0',
+                         help='comma-separated eta values evaluated after training (the run\'s --alpha1 is always added)')
+    parser.add_argument('--plugin-result-dir', type=str, default='./results/plugin_hawkes',
+                         help='where the per-run plug-in json (concentration + eta-grid metrics) is written')
 
 
 
