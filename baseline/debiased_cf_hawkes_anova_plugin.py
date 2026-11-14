@@ -21,10 +21,11 @@ from module.procedure import computeTopNAccuracy
 from module.dataset import UserItemTime
 from module.model import score_all, MODEL_REGISTRY
 from module.debias import build_debias_model, build_unshared_debias_model, build_linear_debias_model, build_unshared_linear_debias_model
-from module.hawkes_choice import importance_corrected_choice_loss, anova_centering_penalty
+from module.hawkes_choice import anova_centering_penalty
 from module.plugin import (
     resolve_beta_scale, plugin_ckpt_path, load_frozen_hawkes, trainable_parameters, hawkes_state_fingerprint,
     hawkes_concentration, evaluate_eta_grid, parse_eta_grid, save_json,
+    FrozenHawkesPrior, plugin_importance_corrected_choice_loss,
 )
 
 
@@ -124,7 +125,7 @@ optimizer = torch.optim.Adam(
 )
 
 #%%
-dataset.get_pair_item_uniform(k=num_negatives, w_time=True)
+dataset.get_pair_item_uniform(k=num_negatives, w_time=False)
 dataset.prepare_user_timebucket_sampler(bucket_size=args.user_bucket_size, w_cold=True)
 dataset.get_pair_user_event_timebucket_fast(w_cold=True)
 
@@ -143,6 +144,10 @@ if len(matched_files) > 0:
     print("MODEL LOADED!")
     plugin_info = load_frozen_hawkes(model, plugin_ckpt, beta_scale=plugin_beta_scale, device=args.device)
     phi_fingerprint = hawkes_state_fingerprint(model)
+
+
+# Phi_hat is frozen: mu_v / alpha_v tables and the (m_item, L) event times are prepared once, on the device.
+frozen_prior = FrozenHawkesPrior(model, dataset.item_time_array, args.device)
 
 
 while epoch < args.epochs:
@@ -175,23 +180,14 @@ while epoch < args.epochs:
             np.concatenate([dataset.cold_event_time_list[cold_sample_idx], dataset.hot_event_time_list[hot_sample_idx]]),
             dtype=torch.float32, device=args.device,
         )
-        pos_time_all = torch.tensor(
-            np.concatenate([dataset.cold_pos_time_all[cold_sample_idx], dataset.hot_pos_time_all[hot_sample_idx]]),
-            dtype=torch.float32, device=args.device,
-        )
-        neg_time_all = torch.tensor(
-            np.concatenate([dataset.cold_neg_time_all[cold_sample_idx], dataset.hot_neg_time_all[hot_sample_idx]]),
-            dtype=torch.float32, device=args.device,
-        )
 
         candidate_items = torch.cat([pos_item.unsqueeze(-1), neg_item], dim=-1)
-        candidate_time_all = torch.cat([pos_time_all.unsqueeze(1), neg_time_all], dim=1)
         batch_hist = dummy_hist[:anchor_user.shape[0]]
 
         """CHOICE LOSS: l_choice(Phi, Psi)"""
-        choice_loss = importance_corrected_choice_loss(
-            model, candidate_items, batch_hist, anchor_user,
-            pos_time, candidate_time_all, dataset.m_item, num_negatives,
+        choice_loss = plugin_importance_corrected_choice_loss(
+            model, frozen_prior, candidate_items, batch_hist, anchor_user,
+            pos_time, dataset.m_item, num_negatives,
         )
 
         """ANOVA-CENTERING PENALTY: R_cen(Psi), estimated from two independently
@@ -220,7 +216,7 @@ while epoch < args.epochs:
         epoch_choice_loss += choice_loss.item()
         epoch_center_loss += center_loss.item()
 
-        dataset.get_pair_item_uniform(k=num_negatives, w_time=True)
+        dataset.get_pair_item_uniform(k=num_negatives, w_time=False)
 
     print(f"[Epoch {epoch:>4d} Train Loss] choice: {epoch_choice_loss / batch_num:.4f} / center: {epoch_center_loss / batch_num:.4f}")
 

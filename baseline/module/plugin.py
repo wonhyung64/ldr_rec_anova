@@ -26,6 +26,7 @@ import torch
 import torch.nn.functional as F
 
 from .procedure import computeTopNAccuracy
+from .model import score_pair
 
 HAWKES_PREFIXES = ("log_beta", "p_item_embedding.", "base_net.", "excitation_net.")
 
@@ -103,6 +104,46 @@ def load_frozen_hawkes(model, ckpt_path, beta_scale=1.0, device="cpu"):
         "beta_used": float(model.current_beta()),
         "n_frozen_params": n_frozen,
     }
+
+
+class FrozenHawkesPrior:
+    """lambda_v(t; Phi_hat) for a frozen Phi_hat, with everything that does not depend on the batch precomputed.
+
+    model.prior() re-runs base_net / excitation_net on every candidate of every batch and needs the
+    (batch, candidates, L) event-time tensor to be gathered on the CPU by the dataset for *all* training
+    events after every step.  With Phi frozen, mu_v and alpha_v are plain per-item tables (computed once) and the
+    event times live on the device, so a batch only needs an index gather of (B, C, L) values.
+    The arithmetic (mask, delta, exp(-beta*delta), sum) is exactly model.prior()'s.
+    """
+
+    def __init__(self, model, item_time_array, device):
+        with torch.no_grad():
+            mu, alpha, beta = model.prior_parameters_from_embeddings()
+        self.mu, self.alpha, self.beta = mu.detach(), alpha.detach(), beta.detach()
+        self.item_time = torch.tensor(item_time_array, dtype=torch.float32, device=device)  # (m_item, L), days
+
+    @torch.no_grad()
+    def __call__(self, candidate_items, pos_time):
+        times = self.item_time[candidate_items]               # (B, C, L)
+        query = pos_time.view(-1, 1, 1)
+        mask = times < query
+        delta = (query - times).clamp(min=0.0)
+        h = (torch.exp(-self.beta * delta) * mask).sum(dim=-1)  # (B, C)
+        return self.mu[candidate_items] + self.alpha[candidate_items] * h
+
+
+def plugin_importance_corrected_choice_loss(
+    model, prior, candidate_items, hist_items, user_idx, pos_time, num_items, num_negatives,
+):
+    """hawkes_choice.importance_corrected_choice_loss with the frozen-Phi intensity taken from `prior`
+    (a FrozenHawkesPrior) instead of model.prior(); the loss itself is unchanged."""
+    lam = prior(candidate_items, pos_time)
+    util = score_pair(model, candidate_items, hist_items, user_idx)
+    log_a = torch.log(lam + 1e-12) + util
+
+    log_correction = math.log(max(num_items - 1, 1)) - math.log(num_negatives)
+    logits = torch.cat([log_a[:, :1], log_a[:, 1:] + log_correction], dim=1)
+    return -F.log_softmax(logits, dim=-1)[:, 0].mean()
 
 
 def trainable_parameters(model):
