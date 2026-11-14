@@ -133,21 +133,21 @@ experiments=()
 N_DONE=0
 [ "$MODE" = "status" ] && echo "runs:"
 
-for dataset in $DATASETS; do
-    for model in $BACKBONES; do
-        script="${SCRIPT_FOR[$model]}"
-        alpha1="${ALPHA1_FOR[${dataset},${model}]}"
-        gamma="${GAMMA_FOR[${dataset},${model}]}"
-        if [ -z "$script" ] || [ -z "$alpha1" ] || [ -z "$gamma" ]; then
-            echo "unknown (dataset, backbone) = ($dataset, $model)"; exit 1
-        fi
+for seed in $SEEDS; do
+    for dataset in $DATASETS; do
+        for model in $BACKBONES; do
+            script="${SCRIPT_FOR[$model]}"
+            alpha1="${ALPHA1_FOR[${dataset},${model}]}"
+            gamma="${GAMMA_FOR[${dataset},${model}]}"
+            if [ -z "$script" ] || [ -z "$alpha1" ] || [ -z "$gamma" ]; then
+                echo "unknown (dataset, backbone) = ($dataset, $model)"; exit 1
+            fi
 
-        extra_args=""
-        if [ "$model" == "bsarec" ]; then
-            extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=1"
-        fi
+            extra_args=""
+            if [ "$model" == "bsarec" ]; then
+                extra_args="--alpha=${BSAREC_ALPHA_FOR[$dataset]} --c=1"
+            fi
 
-        for seed in $SEEDS; do
             tag="${dataset}/${model} seed=${seed}"
             json=${PLUGIN_RESULT_DIR}/${dataset}_${model}_gamma${gamma}_eta${alpha1}_seed${seed}.json
             ckpt=${PLUGIN_PATH}/${dataset}/${PLUGIN_MODEL}_seed${seed}.pt
