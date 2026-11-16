@@ -29,8 +29,7 @@
 
 MODE=${1:-submit}
 DATASETS=${DATASETS:-"kuairand"}
-# BACKBONES=${BACKBONES:-"tisasrec mf grurec sasrec fearec bsarec"}
-BACKBONES=${BACKBONES:-"tisasrec"}
+BACKBONES=${BACKBONES:-"fearec"}
 SEEDS=${SEEDS:-"1 2 3 4"}
 
 cd "$(dirname "$0")" || exit 1
@@ -40,7 +39,7 @@ read -r -d '' SLURM_SCRIPT<<'EOF'
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=2
-#SBATCH --partition=gpu4
+#SBATCH --partition=gpu5,gpu3,gpu4,gpu2,gpu6,gpu1
 ##
 #SBATCH --job-name=HawkesAnovaPlugin
 #SBATCH -o logs/s_%j.out
