@@ -84,6 +84,12 @@ def parse_args():
     parser.add_argument('--eval-batch-size', type=int, default=128, help='events scored at once in eval_eta_selection.py')
     parser.add_argument('--eta-result-dir', type=str, default='./results/eta_selection',
                          help='where eval_eta_selection.py writes its per-run json')
+    # eval_popularity_combo.py: utility + (global frequency | sliding window | Hawkes) popularity computed with test data
+    parser.add_argument('--pop-etas', type=str, default='0.0,0.3,0.5', help='comma-separated eta values')
+    parser.add_argument('--pop-result-dir', type=str, default='./results/popularity_combo')
+    parser.add_argument('--pop-max-events', type=int, default=0, help='debug: only the first N test events (0 = all)')
+    parser.add_argument('--pop-window-days', type=float, default=3.0, help='sliding window length')
+    parser.add_argument('--pop-eps', type=float, default=1e-6, help='additive smoothing of count-based popularity')
     parser.add_argument('--plugin-result-dir', type=str, default='./results/plugin_hawkes',
                          help='where the per-run plug-in json (concentration + eta-grid metrics) is written')
 
