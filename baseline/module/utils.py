@@ -74,6 +74,16 @@ def parse_args():
                          help='multiply the checkpoint\'s decay rate beta by this factor (time-unit conversion). <0: auto (1000 for kuairand, 1 otherwise)')
     parser.add_argument('--plugin-eta-grid', type=str, default='0.0,0.1,0.3,0.5,0.7,0.9,1.0',
                          help='comma-separated eta values evaluated after training (the run\'s --alpha1 is always added)')
+    # eval_eta_selection.py: choose eta on the validation recent-3d Tail slice using trained checkpoints
+    parser.add_argument('--setting', type=str, default='joint', choices=['joint', 'plugin'],
+                         help='which trained checkpoints to load: joint (*_hawkesanova.pt) or plugin (*_hawkesanova_plugin.pt)')
+    parser.add_argument('--ckpt-epoch', type=int, default=500, help='epoch of the checkpoint to load')
+    parser.add_argument('--eta-select-grid', type=str, default='0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0',
+                         help='comma-separated eta candidates for validation-based selection')
+    parser.add_argument('--select-days', type=int, default=3, help='recent-popularity window (days) defining head/tail')
+    parser.add_argument('--eval-batch-size', type=int, default=128, help='events scored at once in eval_eta_selection.py')
+    parser.add_argument('--eta-result-dir', type=str, default='./results/eta_selection',
+                         help='where eval_eta_selection.py writes its per-run json')
     parser.add_argument('--plugin-result-dir', type=str, default='./results/plugin_hawkes',
                          help='where the per-run plug-in json (concentration + eta-grid metrics) is written')
 
